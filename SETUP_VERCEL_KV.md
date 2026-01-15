@@ -1,22 +1,28 @@
 # Vercel KV Setup Guide
 
-## Step 1: Create Vercel KV Database
+## Step 1: Add Vercel KV through Marketplace
 
 1. **Go to your Vercel Dashboard:**
    - Visit https://vercel.com/dashboard
    - Click on your project (easychess)
 
-2. **Create KV Database:**
-   - Go to **Storage** tab (or **Settings** → **Storage**)
-   - Click **Create Database**
-   - Select **KV** (Key-Value)
-   - Give it a name (e.g., "chess-rooms")
-   - Click **Create**
+2. **Add KV through Marketplace:**
+   - Go to your project → **Storage** tab
+   - Look for **"Marketplace Database Providers"** section
+   - Click **"Learn more"** or browse the marketplace
+   - Search for **"KV"** or **"Vercel KV"**
+   - Click **Add** or **Install** on the KV option
+   - Follow the prompts to add it to your project
 
-3. **Connect to Project:**
-   - Vercel will automatically add the KV database to your project
-   - Environment variables are automatically configured
-   - No manual setup needed!
+   **Alternative method:**
+   - Go to **Settings** → **Integrations** or **Marketplace**
+   - Search for "KV" or "Redis"
+   - Add it to your project
+
+3. **Configure KV:**
+   - After adding, Vercel will automatically configure it
+   - Environment variables are set automatically
+   - The database will be connected to your project
 
 ## Step 2: Verify Installation
 
