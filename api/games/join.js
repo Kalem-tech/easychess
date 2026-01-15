@@ -1,6 +1,4 @@
-// Join an existing game room
-const games = getGamesStorage();
-
+// Join an existing game room - Using Supabase for persistence
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,7 +26,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Guest name required' });
     }
 
-    const game = games.get(roomCode);
+    const game = await getRoom(roomCode);
     if (!game) {
       return res.status(404).json({ error: 'Room not found' });
     }
@@ -40,7 +38,7 @@ export default async function handler(req, res) {
     game.guest = guest;
     game.guestConnected = true;
     game.guestLastSeen = Date.now();
-    games.set(roomCode, game);
+    await storeRoom(roomCode, game);
 
     return res.status(200).json({
       roomCode,
@@ -52,9 +50,59 @@ export default async function handler(req, res) {
   }
 }
 
-function getGamesStorage() {
+async function getRoom(roomCode) {
+  // Try Supabase first
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    try {
+      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms?room_code=eq.${roomCode}`, {
+        headers: {
+          'apikey': process.env.SUPABASE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          return data[0].data;
+        }
+      }
+    } catch (e) {
+      console.log('Supabase fetch failed, using fallback');
+    }
+  }
+  
+  // Fallback to in-memory
   if (!global.gamesStorage) {
     global.gamesStorage = new Map();
   }
-  return global.gamesStorage;
+  return global.gamesStorage.get(roomCode) || null;
+}
+
+async function storeRoom(roomCode, game) {
+  // Try Supabase first
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    try {
+      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms?room_code=eq.${roomCode}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.SUPABASE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
+        },
+        body: JSON.stringify({
+          data: game,
+          updated_at: new Date().toISOString()
+        })
+      });
+      if (response.ok) return;
+    } catch (e) {
+      console.log('Supabase update failed');
+    }
+  }
+  
+  // Fallback to in-memory
+  if (!global.gamesStorage) {
+    global.gamesStorage = new Map();
+  }
+  global.gamesStorage.set(roomCode, game);
 }

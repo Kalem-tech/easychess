@@ -1,6 +1,4 @@
-// Create a new game room
-const games = getGamesStorage();
-
+// Create a new game room - Using Supabase for persistence
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,7 +14,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Parse request body - Vercel may send it as a string or already parsed
+    // Parse request body
     let body;
     if (typeof req.body === 'string') {
       try {
@@ -48,7 +46,8 @@ export default async function handler(req, res) {
       createdAt: Date.now()
     };
 
-    games.set(roomCode, game);
+    // Store in database (Supabase) or fallback to in-memory
+    await storeRoom(roomCode, game);
     
     return res.status(201).json({
       roomCode,
@@ -61,19 +60,35 @@ export default async function handler(req, res) {
 }
 
 function generateRoomCode() {
-  let code;
-  do {
-    code = Math.random().toString(36).substring(2, 8).toUpperCase();
-  } while (games.has(code));
-  return code;
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-function getGamesStorage() {
-  // In a serverless environment, we need to use a shared storage
-  // For now, use a simple in-memory store (will reset on cold start)
-  // In production, use Redis, MongoDB, or Vercel KV
+async function storeRoom(roomCode, game) {
+  // Try Supabase first if configured
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    try {
+      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.SUPABASE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
+        },
+        body: JSON.stringify({
+          room_code: roomCode,
+          data: game,
+          created_at: new Date().toISOString()
+        })
+      });
+      if (response.ok) return;
+    } catch (e) {
+      console.log('Supabase storage failed, using fallback');
+    }
+  }
+  
+  // Fallback to in-memory (will be lost on cold start)
   if (!global.gamesStorage) {
     global.gamesStorage = new Map();
   }
-  return global.gamesStorage;
+  global.gamesStorage.set(roomCode, game);
 }

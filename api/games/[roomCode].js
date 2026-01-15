@@ -1,6 +1,4 @@
-// Get, update, or delete a specific game room
-const games = getGamesStorage();
-
+// Get, update, or delete a specific game room - Using Supabase for persistence
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,11 +18,11 @@ export default async function handler(req, res) {
   try {
     switch (req.method) {
       case 'GET':
-        return handleGet(req, res, roomCode);
+        return await handleGet(req, res, roomCode);
       case 'PUT':
         return await handlePut(req, res, roomCode);
       case 'DELETE':
-        return handleDelete(req, res, roomCode);
+        return await handleDelete(req, res, roomCode);
       default:
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -34,13 +32,12 @@ export default async function handler(req, res) {
   }
 }
 
-function handleGet(req, res, roomCode) {
-  const game = games.get(roomCode);
+async function handleGet(req, res, roomCode) {
+  const game = await getRoom(roomCode);
   if (!game) {
     return res.status(404).json({ error: 'Room not found' });
   }
   
-  // Return game state
   return res.status(200).json({
     roomCode,
     host: game.host,
@@ -54,7 +51,7 @@ function handleGet(req, res, roomCode) {
 }
 
 async function handlePut(req, res, roomCode) {
-  const game = games.get(roomCode);
+  const game = await getRoom(roomCode);
   if (!game) {
     return res.status(404).json({ error: 'Room not found' });
   }
@@ -68,7 +65,6 @@ async function handlePut(req, res, roomCode) {
     game.lastMove = lastMove;
     game.lastUpdate = Date.now();
   } else if (action === 'heartbeat') {
-    // Update connection status
     if (playerColor === 'white') {
       game.hostConnected = true;
       game.hostLastSeen = Date.now();
@@ -78,24 +74,92 @@ async function handlePut(req, res, roomCode) {
     }
   }
   
-  games.set(roomCode, game);
+  await storeRoom(roomCode, game);
   
   return res.status(200).json({ message: 'Game state updated' });
 }
 
-function handleDelete(req, res, roomCode) {
-  const game = games.get(roomCode);
-  if (!game) {
-    return res.status(404).json({ error: 'Room not found' });
-  }
-
-  games.delete(roomCode);
+async function handleDelete(req, res, roomCode) {
+  await deleteRoom(roomCode);
   return res.status(200).json({ message: 'Room deleted' });
 }
 
-function getGamesStorage() {
+async function getRoom(roomCode) {
+  // Try Supabase first
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    try {
+      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms?room_code=eq.${roomCode}`, {
+        headers: {
+          'apikey': process.env.SUPABASE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {
+          return data[0].data;
+        }
+      }
+    } catch (e) {
+      console.log('Supabase fetch failed, using fallback');
+    }
+  }
+  
+  // Fallback to in-memory
   if (!global.gamesStorage) {
     global.gamesStorage = new Map();
   }
-  return global.gamesStorage;
+  return global.gamesStorage.get(roomCode) || null;
+}
+
+async function storeRoom(roomCode, game) {
+  // Try Supabase first
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    try {
+      // Try to update existing, or insert new
+      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms?room_code=eq.${roomCode}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': process.env.SUPABASE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
+        },
+        body: JSON.stringify({
+          data: game,
+          updated_at: new Date().toISOString()
+        })
+      });
+      if (response.ok) return;
+    } catch (e) {
+      console.log('Supabase update failed');
+    }
+  }
+  
+  // Fallback to in-memory
+  if (!global.gamesStorage) {
+    global.gamesStorage = new Map();
+  }
+  global.gamesStorage.set(roomCode, game);
+}
+
+async function deleteRoom(roomCode) {
+  // Try Supabase first
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    try {
+      await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms?room_code=eq.${roomCode}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': process.env.SUPABASE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
+        }
+      });
+    } catch (e) {
+      console.log('Supabase delete failed');
+    }
+  }
+  
+  // Fallback to in-memory
+  if (global.gamesStorage) {
+    global.gamesStorage.delete(roomCode);
+  }
 }
