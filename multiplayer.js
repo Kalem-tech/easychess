@@ -124,9 +124,25 @@ class MultiplayerManager {
             this.myName = whiteName;
             this.opponentName = blackName;
 
-            // Save to localStorage for persistence
+            // Save to localStorage for persistence (primary source of truth)
             localStorage.setItem('chess_current_room', this.roomCode);
             localStorage.setItem('chess_player_color', 'white');
+            
+            // Save complete room data locally as backup
+            const localRoomData = {
+                roomCode: this.roomCode,
+                host: whiteName,
+                guest: blackName,
+                hostConnected: true,
+                guestConnected: false,
+                gameState: null,
+                lastMove: null,
+                createdAt: Date.now()
+            };
+            localStorage.setItem(`chess_room_${this.roomCode}`, JSON.stringify(localRoomData));
+            
+            // Cache it for immediate use
+            this._cachedRoomData = localRoomData;
             
             // Show room code prominently
             alert(`✅ Room Created Successfully!\n\n📋 ROOM CODE: ${this.roomCode}\n\n✅ Share this code with your opponent to play across different devices!\n\nThey can join from any browser or device.`);
@@ -257,15 +273,55 @@ class MultiplayerManager {
     async fetchRoomData(roomCode) {
         if (!roomCode) return null;
         
+        // First try to get from localStorage (more reliable)
+        const localData = localStorage.getItem(`chess_room_${roomCode}`);
+        if (localData) {
+            try {
+                const parsed = JSON.parse(localData);
+                // Also try to sync with server, but don't fail if it doesn't work
+                this.syncWithServer(roomCode, parsed).catch(err => {
+                    console.log('Server sync failed, using local data:', err);
+                });
+                return parsed;
+            } catch (e) {
+                console.error('Error parsing local room data:', e);
+            }
+        }
+        
+        // Fallback to server
         try {
             const response = await fetch(`${this.apiBase}/${roomCode}`);
             if (!response.ok) {
                 return null;
             }
-            return await response.json();
+            const serverData = await response.json();
+            // Save server data to localStorage
+            localStorage.setItem(`chess_room_${roomCode}`, JSON.stringify(serverData));
+            return serverData;
         } catch (error) {
-            console.error('Error fetching room data:', error);
+            console.error('Error fetching room data from server:', error);
             return null;
+        }
+    }
+    
+    async syncWithServer(roomCode, localData) {
+        // Try to ensure server has the room data
+        try {
+            const response = await fetch(`${this.apiBase}/${roomCode}`);
+            if (!response.ok && response.status === 404) {
+                // Room doesn't exist on server, try to recreate it
+                await fetch(`${this.apiBase}/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        host: localData.host,
+                        guest: localData.guest
+                    })
+                });
+            }
+        } catch (error) {
+            // Ignore errors - we'll use local data
+            console.log('Server sync error (non-critical):', error);
         }
     }
 
@@ -406,10 +462,39 @@ class MultiplayerManager {
         try {
             const roomData = await this.fetchRoomData(this.roomCode);
             if (!roomData) {
-                this.showMessage('Room not found. Leaving...', 'warning');
-                setTimeout(() => this.leaveRoom(), 2000);
+                // Don't immediately leave - retry a few times first
+                // This handles cases where the server might have cold-started
+                if (!this._retryCount) {
+                    this._retryCount = 0;
+                }
+                this._retryCount++;
+                
+                if (this._retryCount < 5) {
+                    // Retry - might be a temporary server issue
+                    console.log(`Room not found, retrying... (${this._retryCount}/5)`);
+                    return;
+                }
+                
+                // After 5 retries, check if we just created the room
+                // If so, try to recreate it or use local storage
+                if (this._retryCount === 5) {
+                    console.warn('Room not found after retries. This might be a server cold start issue.');
+                    this.showMessage('Connection issue - room may have been lost. Please recreate the room.', 'warning');
+                    // Don't auto-leave, let user decide
+                    return;
+                }
+                
+                // Only leave after many failed attempts
+                if (this._retryCount >= 10) {
+                    this.showMessage('Room not found. Leaving...', 'warning');
+                    setTimeout(() => this.leaveRoom(), 2000);
+                    return;
+                }
                 return;
             }
+            
+            // Reset retry count on success
+            this._retryCount = 0;
 
             // Cache room data for synchronous access
             this._cachedRoomData = roomData;
@@ -466,7 +551,15 @@ class MultiplayerManager {
 
             const lastMove = this.chessGame.lastMove || null;
 
-            await fetch(`${this.apiBase}/${this.roomCode}`, {
+            // Update localStorage first (primary storage)
+            const localData = this._cachedRoomData || {};
+            localData.gameState = gameState;
+            localData.lastMove = lastMove;
+            localStorage.setItem(`chess_room_${this.roomCode}`, JSON.stringify(localData));
+            this._cachedRoomData = localData;
+
+            // Also try to sync with server (best effort)
+            fetch(`${this.apiBase}/${this.roomCode}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -477,6 +570,8 @@ class MultiplayerManager {
                     playerColor: this.playerColor,
                     action: 'update-state'
                 })
+            }).catch(error => {
+                console.log('Server sync failed (using local storage):', error);
             });
         } catch (error) {
             console.error('Error saving game state:', error);
