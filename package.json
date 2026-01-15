@@ -1,0 +1,9 @@
+{
+  "name": "chess-website",
+  "version": "1.0.0",
+  "description": "Chess game with multiplayer support",
+  "type": "module",
+  "engines": {
+    "node": "18.x"
+  }
+}
