@@ -1,4 +1,4 @@
-// Multiplayer system for online chess
+// Multiplayer system for online chess - Now using API backend
 class MultiplayerManager {
     constructor(chessGame) {
         this.chessGame = chessGame;
@@ -8,9 +8,18 @@ class MultiplayerManager {
         this.opponentName = null;
         this.myName = null;
         this.syncInterval = null;
+        this.heartbeatInterval = null;
         this._lastAppliedMove = null;
         this._disconnectShown = false;
+        this.apiBase = this.getApiBase();
         this.init();
+    }
+
+    getApiBase() {
+        // Get the base URL for API calls
+        // Works for both localhost and Vercel deployment
+        const origin = window.location.origin;
+        return `${origin}/api/games`;
     }
 
     init() {
@@ -55,11 +64,7 @@ class MultiplayerManager {
         });
     }
 
-    generateRoomCode() {
-        return Math.random().toString(36).substring(2, 8).toUpperCase();
-    }
-
-    createRoom() {
+    async createRoom() {
         console.log('createRoom called');
         try {
             const whiteNameEl = document.getElementById('white-player-name');
@@ -81,51 +86,49 @@ class MultiplayerManager {
                 return;
             }
 
-            this.roomCode = this.generateRoomCode();
-            console.log('Generated room code:', this.roomCode);
+            // Create room via API
+            const response = await fetch(`${this.apiBase}/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    host: whiteName,
+                    guest: blackName
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to create room');
+            }
+
+            const data = await response.json();
+            this.roomCode = data.roomCode;
+            console.log('Room created with code:', this.roomCode);
             
             this.isHost = true;
             this.playerColor = 'white'; // Host plays white
             this.myName = whiteName;
             this.opponentName = blackName;
 
-            const roomData = {
-                roomCode: this.roomCode,
-                host: whiteName,
-                guest: blackName,
-                gameState: null,
-                lastMove: null,
-                createdAt: Date.now(),
-                hostConnected: true,
-                guestConnected: false
-            };
-
-            // Save room data
-            const roomKey = `chess_room_${this.roomCode}`;
-            localStorage.setItem(roomKey, JSON.stringify(roomData));
+            // Save to localStorage for persistence
             localStorage.setItem('chess_current_room', this.roomCode);
             localStorage.setItem('chess_player_color', 'white');
-
-            // Verify it was saved
-            const verifyData = localStorage.getItem(roomKey);
-            console.log('Room data saved. Verification:', verifyData ? 'SUCCESS' : 'FAILED');
-            console.log('Room key:', roomKey);
-            console.log('Room code:', this.roomCode);
-            console.log('Full room data:', roomData);
             
             // Show room code prominently
-            alert(`✅ Room Created Successfully!\n\n📋 ROOM CODE: ${this.roomCode}\n\n⚠️ IMPORTANT: Share this code with your opponent.\n\nNote: Rooms only work in the SAME browser.\nIf your opponent is on a different device/browser, they won't be able to join.`);
+            alert(`✅ Room Created Successfully!\n\n📋 ROOM CODE: ${this.roomCode}\n\n✅ Share this code with your opponent to play across different devices!\n\nThey can join from any browser or device.`);
             
             this.updateUI();
             this.startSyncing();
             this.showMessage(`Room created! Code: ${this.roomCode}`, 'success');
         } catch (error) {
             console.error('Error creating room:', error);
-            alert('An error occurred while creating the room. Please try again.');
+            alert(`An error occurred while creating the room: ${error.message}`);
         }
     }
 
-    joinRoom() {
+    async joinRoom() {
         try {
             const roomCodeInput = document.getElementById('room-code-input');
             if (!roomCodeInput) {
@@ -142,148 +145,85 @@ class MultiplayerManager {
                 return;
             }
 
-            // Debug: List all rooms in localStorage
-            console.log('Searching for room:', roomCode);
-            const allKeys = Object.keys(localStorage);
-            const roomKeys = allKeys.filter(key => key.startsWith('chess_room_'));
-            console.log('All room keys in localStorage:', roomKeys);
-            
-            // Get all actual room codes and their data
-            const availableRooms = [];
-            roomKeys.forEach(key => {
-                const roomCodeFromKey = key.replace('chess_room_', '');
-                try {
-                    const roomData = JSON.parse(localStorage.getItem(key));
-                    availableRooms.push({
-                        key: key,
-                        code: roomCodeFromKey,
-                        codeUpper: roomCodeFromKey.toUpperCase(),
-                        host: roomData?.host || 'Unknown',
-                        guestConnected: roomData?.guestConnected || false
-                    });
-                    console.log(`Found room: ${roomCodeFromKey} (host: ${roomData?.host || 'Unknown'})`);
-                } catch (e) {
-                    console.error(`Error parsing room ${key}:`, e);
-                }
+            const blackName = document.getElementById('black-player-name').value.trim();
+            if (!blackName) {
+                alert('Please enter your name');
+                return;
+            }
+
+            // Join room via API
+            const response = await fetch(`${this.apiBase}/join`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    roomCode,
+                    guest: blackName
+                })
             });
 
-            // Try exact match first
-            let roomData = this.getRoomData(roomCode);
-            console.log('Room data retrieved (exact match):', roomData);
-            
-            // If not found, try case-insensitive match
-            if (!roomData) {
-                const matchingRoom = availableRooms.find(r => r.codeUpper === roomCode);
-                if (matchingRoom) {
-                    console.log('Found case-insensitive match:', matchingRoom.code);
-                    roomData = this.getRoomData(matchingRoom.code);
-                    if (roomData) {
-                        // Use the actual room code from storage
-                        return this.joinRoomWithCode(matchingRoom.code, roomData);
-                    }
-                }
-            }
-            
-            if (!roomData) {
-                // Build a helpful error message with clickable options
-                let errorMsg = `Room "${roomCode}" not found.\n\n`;
-                errorMsg += `Found ${availableRooms.length} room(s) in system:\n\n`;
-                
-                const joinableRooms = availableRooms.filter(r => !r.guestConnected && r.hostConnected);
-                
-                availableRooms.forEach((room, index) => {
-                    const status = room.isJoinable ? '🟢 JOINABLE' : room.guestConnected ? '🔴 FULL' : '🟡 WAITING';
-                    errorMsg += `${index + 1}. ${status} - ${room.code}\n`;
-                    errorMsg += `   Host: ${room.host}\n`;
-                });
-                
-                if (joinableRooms.length > 0) {
-                    errorMsg += `\n\n💡 Found ${joinableRooms.length} room(s) available to join!\n`;
-                    errorMsg += `Would you like to join room "${joinableRooms[0].code}" (Host: ${joinableRooms[0].host})?`;
-                    
-                    const shouldJoin = confirm(errorMsg);
-                    if (shouldJoin) {
-                        const roomCodeInput = document.getElementById('room-code-input');
-                        if (roomCodeInput) {
-                            roomCodeInput.value = joinableRooms[0].code;
-                            // Small delay to ensure input is updated, then retry join
-                            setTimeout(() => {
-                                this.joinRoom();
-                            }, 100);
-                            return;
-                        }
-                    }
+            if (!response.ok) {
+                const error = await response.json();
+                if (response.status === 404) {
+                    alert(`Room "${roomCode}" not found. Please check the room code and try again.`);
+                } else if (response.status === 400 && error.error === 'Room is full') {
+                    alert('Room is full. This room already has two players.');
                 } else {
-                    errorMsg += `\n\n⚠️ IMPORTANT: Rooms only work in the SAME browser.\n`;
-                    errorMsg += `If you're on different devices/browsers, you need a server.\n\n`;
-                    errorMsg += `Tip: Use "Show Available Rooms" button to see all rooms.`;
-                    alert(errorMsg);
+                    alert(`Error joining room: ${error.error || 'Unknown error'}`);
                 }
                 return;
             }
 
-            if (roomData.guestConnected) {
-                alert('Room is full. This room already has two players.');
-                return;
+            const data = await response.json();
+            console.log('Successfully joined room:', data);
+
+            // If already in a room, leave it first
+            if (this.roomCode && this.roomCode !== roomCode) {
+                console.log('Leaving existing room before joining new one');
+                await this.leaveRoom();
             }
 
-            return this.joinRoomWithCode(roomCode, roomData);
+            this.roomCode = roomCode;
+            this.isHost = false;
+            this.playerColor = 'black'; // Guest plays black
+            this.myName = blackName;
+
+            // Get room data to set opponent name
+            const roomData = await this.fetchRoomData(roomCode);
+            if (roomData) {
+                this.opponentName = roomData.host;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('chess_current_room', this.roomCode);
+            localStorage.setItem('chess_player_color', 'black');
+
+            this.updateUI();
+            this.startSyncing();
+            this.showMessage('Successfully joined room!', 'success');
         } catch (error) {
             console.error('Error joining room:', error);
-            alert('An error occurred while joining the room. Please try again.');
+            alert(`An error occurred while joining the room: ${error.message}`);
         }
     }
 
-    joinRoomWithCode(roomCode, roomData) {
-        const blackName = document.getElementById('black-player-name').value.trim();
-        if (!blackName) {
-            alert('Please enter your name');
-            return;
-        }
-
-        // If already in a room, leave it first
-        if (this.roomCode && this.roomCode !== roomCode) {
-            console.log('Leaving existing room before joining new one');
-            this.leaveRoom();
-        }
-
-        console.log('Joining room:', roomCode, 'as guest with name:', blackName);
-
-        this.roomCode = roomCode;
-        this.isHost = false;
-        this.playerColor = 'black'; // Guest plays black
-        this.myName = blackName;
-        this.opponentName = roomData.host;
-
-        roomData.guest = blackName;
-        roomData.guestConnected = true;
-        
-        // Save room data
-        const roomKey = `chess_room_${this.roomCode}`;
-        localStorage.setItem(roomKey, JSON.stringify(roomData));
-        localStorage.setItem('chess_current_room', this.roomCode);
-        localStorage.setItem('chess_player_color', 'black');
-
-        // Verify it was saved
-        const verifyData = localStorage.getItem(roomKey);
-        console.log('Room data saved. Verification:', verifyData ? 'SUCCESS' : 'FAILED');
-        console.log('Successfully joined room. Room data saved.');
-
-        this.updateUI();
-        this.startSyncing();
-        this.showMessage('Successfully joined room!', 'success');
-    }
-
-    leaveRoom() {
+    async leaveRoom() {
         if (this.roomCode) {
-            const roomData = this.getRoomData(this.roomCode);
-            if (roomData) {
-                if (this.isHost) {
-                    roomData.hostConnected = false;
-                } else {
-                    roomData.guestConnected = false;
-                }
-                localStorage.setItem(`chess_room_${this.roomCode}`, JSON.stringify(roomData));
+            try {
+                // Send heartbeat to mark as disconnected
+                await fetch(`${this.apiBase}/${this.roomCode}?action=heartbeat`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        playerColor: this.playerColor,
+                        action: 'heartbeat'
+                    })
+                });
+            } catch (error) {
+                console.error('Error updating disconnect status:', error);
             }
         }
 
@@ -301,27 +241,22 @@ class MultiplayerManager {
         this.showMessage('Left room', 'info');
     }
 
-    getRoomData(roomCode) {
+    async fetchRoomData(roomCode) {
         if (!roomCode) return null;
         
-        // Ensure room code is uppercase for consistency
-        const normalizedCode = roomCode.toUpperCase().trim();
-        const key = `chess_room_${normalizedCode}`;
-        const data = localStorage.getItem(key);
-        
-        if (data) {
-            try {
-                return JSON.parse(data);
-            } catch (e) {
-                console.error('Error parsing room data:', e);
+        try {
+            const response = await fetch(`${this.apiBase}/${roomCode}`);
+            if (!response.ok) {
                 return null;
             }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching room data:', error);
+            return null;
         }
-        
-        return null;
     }
 
-    updateUI() {
+    async updateUI() {
         const roomInfo = document.getElementById('room-info');
         const createBtn = document.getElementById('create-room-btn');
         const joinSection = document.querySelector('.join-room-section');
@@ -339,7 +274,7 @@ class MultiplayerManager {
             createBtn.style.display = 'none';
             joinSection.style.display = 'none';
             
-            const roomData = this.getRoomData(this.roomCode);
+            const roomData = await this.fetchRoomData(this.roomCode);
             if (roomData) {
                 if (roomCodeDisplay) {
                     roomCodeDisplay.textContent = this.roomCode;
@@ -358,11 +293,30 @@ class MultiplayerManager {
         }
     }
 
+    // For backward compatibility with chess.js
+    // Note: This returns a promise, but chess.js might call it synchronously
+    // We'll cache the room data and return it synchronously when available
+    _cachedRoomData = null;
+
+    getRoomData(roomCode) {
+        // Return cached data if available, otherwise return null
+        // The sync will update the cache
+        if (this._cachedRoomData && (!roomCode || this._cachedRoomData.roomCode === roomCode)) {
+            return this._cachedRoomData;
+        }
+        return null;
+    }
+
     startSyncing() {
-        // Sync every 500ms to check for updates
+        // Sync game state every 500ms
         this.syncInterval = setInterval(() => {
             this.syncGameState();
         }, 500);
+
+        // Send heartbeat every 5 seconds to keep connection alive
+        this.heartbeatInterval = setInterval(() => {
+            this.sendHeartbeat();
+        }, 5000);
     }
 
     stopSyncing() {
@@ -370,68 +324,118 @@ class MultiplayerManager {
             clearInterval(this.syncInterval);
             this.syncInterval = null;
         }
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
     }
 
-    syncGameState() {
+    async sendHeartbeat() {
+        if (!this.roomCode || !this.playerColor) return;
+
+        try {
+            await fetch(`${this.apiBase}/${this.roomCode}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    playerColor: this.playerColor,
+                    action: 'heartbeat'
+                })
+            });
+        } catch (error) {
+            console.error('Heartbeat error:', error);
+        }
+    }
+
+    async syncGameState() {
         if (!this.roomCode) return;
 
-        const roomData = this.getRoomData(this.roomCode);
-        if (!roomData) {
-            this.leaveRoom();
-            return;
-        }
-
-        // Check if opponent disconnected
-        if (this.isHost && !roomData.guestConnected) {
-            // Don't spam the message
-            if (!this._disconnectShown) {
-                this.showMessage('Waiting for opponent to join...', 'info');
-                this._disconnectShown = true;
+        try {
+            const roomData = await this.fetchRoomData(this.roomCode);
+            if (!roomData) {
+                this.showMessage('Room not found. Leaving...', 'warning');
+                setTimeout(() => this.leaveRoom(), 2000);
+                return;
             }
-        } else if (!this.isHost && !roomData.hostConnected) {
-            if (!this._disconnectShown) {
-                this.showMessage('Host disconnected', 'warning');
-                this._disconnectShown = true;
-            }
-        } else {
-            this._disconnectShown = false;
-        }
 
-        // If it's not my turn, check for opponent's move
-        if (roomData.lastMove && roomData.lastMove.player !== this.playerColor) {
-            // Check if we've already applied this move
-            const lastMoveKey = `${roomData.lastMove.fromRow}-${roomData.lastMove.fromCol}-${roomData.lastMove.toRow}-${roomData.lastMove.toCol}`;
-            if (this._lastAppliedMove !== lastMoveKey) {
-                // Apply opponent's move
-                if (roomData.gameState) {
-                    this.applyGameState(roomData.gameState);
-                    this._lastAppliedMove = lastMoveKey;
+            // Cache room data for synchronous access
+            this._cachedRoomData = roomData;
+
+            // Check if opponent disconnected
+            if (this.isHost && !roomData.guestConnected) {
+                if (!this._disconnectShown) {
+                    this.showMessage('Waiting for opponent to join...', 'info');
+                    this._disconnectShown = true;
+                }
+            } else if (!this.isHost && !roomData.hostConnected) {
+                if (!this._disconnectShown) {
+                    this.showMessage('Host disconnected', 'warning');
+                    this._disconnectShown = true;
+                }
+            } else {
+                this._disconnectShown = false;
+            }
+
+            // If it's not my turn, check for opponent's move
+            if (roomData.lastMove && roomData.lastMove.player !== this.playerColor) {
+                // Check if we've already applied this move
+                const lastMoveKey = `${roomData.lastMove.fromRow}-${roomData.lastMove.fromCol}-${roomData.lastMove.toRow}-${roomData.lastMove.toCol}`;
+                if (this._lastAppliedMove !== lastMoveKey) {
+                    // Apply opponent's move
+                    if (roomData.gameState) {
+                        this.applyGameState(roomData.gameState);
+                        this._lastAppliedMove = lastMoveKey;
+                    }
                 }
             }
-        }
 
-        // Update my game state
-        this.saveGameState();
+            // Update my game state
+            await this.saveGameState();
+        } catch (error) {
+            console.error('Sync error:', error);
+        }
     }
 
-    saveGameState() {
+    async saveGameState() {
         if (!this.roomCode) return;
 
-        const roomData = this.getRoomData(this.roomCode);
-        if (!roomData) return;
+        try {
+            const gameState = {
+                board: this.chessGame.board,
+                currentPlayer: this.chessGame.currentPlayer,
+                moveHistory: this.chessGame.moveHistory,
+                capturedPieces: this.chessGame.capturedPieces,
+                gameOver: this.chessGame.gameOver,
+                inCheck: this.chessGame.inCheck,
+                timers: this.chessGame.timers,
+                gameStarted: this.chessGame.gameStarted
+            };
 
-        roomData.gameState = {
-            board: this.chessGame.board,
-            currentPlayer: this.chessGame.currentPlayer,
-            moveHistory: this.chessGame.moveHistory,
-            capturedPieces: this.chessGame.capturedPieces,
-            gameOver: this.chessGame.gameOver,
-            inCheck: this.chessGame.inCheck,
-            timers: this.chessGame.timers,
-            gameStarted: this.chessGame.gameStarted
-        };
+            const lastMove = this.chessGame.lastMove || null;
 
-        localStorage.setItem(`chess_room_${this.roomCode}`, JSON.stringify(roomData));
+            await fetch(`${this.apiBase}/${this.roomCode}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    gameState,
+                    lastMove,
+                    playerColor: this.playerColor,
+                    action: 'update-state'
+                })
+            });
+        } catch (error) {
+            console.error('Error saving game state:', error);
+        }
+    }
+
+    // Synchronous version for backward compatibility
+    saveGameStateSync() {
+        // Just trigger async save
+        this.saveGameState();
     }
 
     applyGameState(gameState) {
@@ -475,14 +479,11 @@ class MultiplayerManager {
         this.chessGame.updateTimerDisplay();
     }
 
-    onMoveMade(fromRow, fromCol, toRow, toCol) {
+    async onMoveMade(fromRow, fromCol, toRow, toCol) {
         if (!this.roomCode) return;
 
-        const roomData = this.getRoomData(this.roomCode);
-        if (!roomData) return;
-
-        // Record the move
-        roomData.lastMove = {
+        // Store last move for saving
+        this.chessGame.lastMove = {
             fromRow,
             fromCol,
             toRow,
@@ -491,39 +492,30 @@ class MultiplayerManager {
             timestamp: Date.now()
         };
 
-        this.saveGameState();
+        // Save immediately
+        await this.saveGameState();
     }
 
-    updatePlayerName(color, name) {
+    async updatePlayerName(color, name) {
         if (!this.roomCode) return;
 
-        const roomData = this.getRoomData(this.roomCode);
-        if (!roomData) return;
-
-        if (color === 'white') {
-            if (this.isHost) {
-                roomData.host = name;
-                this.myName = name;
-            } else {
-                // Update display for opponent
-            }
-        } else {
-            if (!this.isHost) {
-                roomData.guest = name;
-                this.myName = name;
-            }
+        // Note: Player name updates would need a separate API endpoint
+        // For now, we'll just update locally
+        if (color === 'white' && this.isHost) {
+            this.myName = name;
+        } else if (color === 'black' && !this.isHost) {
+            this.myName = name;
         }
 
-        localStorage.setItem(`chess_room_${this.roomCode}`, JSON.stringify(roomData));
-        this.updateUI();
+        await this.updateUI();
     }
 
-    loadRoomState() {
+    async loadRoomState() {
         const savedRoom = localStorage.getItem('chess_current_room');
         const savedColor = localStorage.getItem('chess_player_color');
 
         if (savedRoom && savedColor) {
-            const roomData = this.getRoomData(savedRoom);
+            const roomData = await this.fetchRoomData(savedRoom);
             if (roomData) {
                 this.roomCode = savedRoom;
                 this.playerColor = savedColor;
@@ -532,10 +524,12 @@ class MultiplayerManager {
                 this.opponentName = this.isHost ? roomData.guest : roomData.host;
 
                 // Update input fields
-                document.getElementById('white-player-name').value = roomData.host || '';
-                document.getElementById('black-player-name').value = roomData.guest || '';
+                const whiteInput = document.getElementById('white-player-name');
+                const blackInput = document.getElementById('black-player-name');
+                if (whiteInput) whiteInput.value = roomData.host || '';
+                if (blackInput) blackInput.value = roomData.guest || '';
 
-                this.updateUI();
+                await this.updateUI();
                 this.startSyncing();
 
                 // Load game state if available
@@ -554,70 +548,50 @@ class MultiplayerManager {
         }
     }
 
-    listAvailableRooms() {
-        const allKeys = Object.keys(localStorage);
-        const roomKeys = allKeys.filter(key => key.startsWith('chess_room_'));
-        
-        if (roomKeys.length === 0) {
-            alert('No rooms found. Create a room first!\n\n⚠️ Note: Rooms only work in the SAME browser.');
-            return;
-        }
-        
-        const availableRooms = [];
-        roomKeys.forEach(key => {
-            const roomCodeFromKey = key.replace('chess_room_', '');
-            try {
-                const roomData = JSON.parse(localStorage.getItem(key));
-                const isJoinable = !roomData?.guestConnected && roomData?.hostConnected;
-                availableRooms.push({
-                    code: roomCodeFromKey,
-                    host: roomData?.host || 'Unknown',
-                    guest: roomData?.guest || 'Not joined',
-                    guestConnected: roomData?.guestConnected || false,
-                    hostConnected: roomData?.hostConnected || false,
-                    isJoinable: isJoinable
-                });
-            } catch (e) {
-                console.error(`Error parsing room ${key}:`, e);
+    async listAvailableRooms() {
+        try {
+            const response = await fetch(`${this.apiBase}/list`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch rooms');
             }
-        });
-        
-        // Sort: joinable rooms first
-        availableRooms.sort((a, b) => {
-            if (a.isJoinable && !b.isJoinable) return -1;
-            if (!a.isJoinable && b.isJoinable) return 1;
-            return 0;
-        });
-        
-        let roomsList = `Available Rooms (${availableRooms.length}):\n\n`;
-        availableRooms.forEach((room, index) => {
-            const status = room.isJoinable ? '🟢 JOINABLE' : room.guestConnected ? '🔴 FULL' : '🟡 WAITING';
-            roomsList += `${index + 1}. ${status}\n`;
-            roomsList += `   Room Code: ${room.code}\n`;
-            roomsList += `   Host: ${room.host}\n`;
-            roomsList += `   Guest: ${room.guest}\n\n`;
-        });
-        
-        // Find the first joinable room and offer to auto-fill
-        const joinableRoom = availableRooms.find(r => r.isJoinable);
-        if (joinableRoom) {
-            roomsList += `\n💡 Room "${joinableRoom.code}" is available to join!\n`;
-            roomsList += `Would you like to join this room now?`;
-            
-            if (confirm(roomsList)) {
-                const roomCodeInput = document.getElementById('room-code-input');
-                if (roomCodeInput) {
-                    roomCodeInput.value = joinableRoom.code;
-                    // Auto-join after a brief delay
-                    setTimeout(() => {
-                        this.joinRoom();
-                    }, 100);
+
+            const data = await response.json();
+            const availableRooms = data.rooms || [];
+
+            if (availableRooms.length === 0) {
+                alert('No rooms found. Create a room first!');
+                return;
+            }
+
+            let roomsList = `Available Rooms (${availableRooms.length}):\n\n`;
+            availableRooms.forEach((room, index) => {
+                roomsList += `${index + 1}. 🟢 JOINABLE\n`;
+                roomsList += `   Room Code: ${room.roomCode}\n`;
+                roomsList += `   Host: ${room.host}\n\n`;
+            });
+
+            // Find the first joinable room and offer to auto-fill
+            const joinableRoom = availableRooms[0];
+            if (joinableRoom) {
+                roomsList += `\n💡 Room "${joinableRoom.roomCode}" is available to join!\n`;
+                roomsList += `Would you like to join this room now?`;
+                
+                if (confirm(roomsList)) {
+                    const roomCodeInput = document.getElementById('room-code-input');
+                    if (roomCodeInput) {
+                        roomCodeInput.value = joinableRoom.roomCode;
+                        // Auto-join after a brief delay
+                        setTimeout(() => {
+                            this.joinRoom();
+                        }, 100);
+                    }
                 }
+            } else {
+                alert(roomsList);
             }
-        } else {
-            roomsList += '\n⚠️ IMPORTANT: Rooms only work in the SAME browser.\n';
-            roomsList += 'If you\'re on different devices, you need a server.';
-            alert(roomsList);
+        } catch (error) {
+            console.error('Error listing rooms:', error);
+            alert(`Error fetching rooms: ${error.message}`);
         }
     }
 
