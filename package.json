@@ -4,6 +4,6 @@
   "description": "Chess game with multiplayer support",
   "type": "module",
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   }
 }
