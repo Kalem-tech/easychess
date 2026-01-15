@@ -1,7 +1,7 @@
 // Get, update, or delete a specific game room
 const games = getGamesStorage();
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, DELETE, OPTIONS');
@@ -22,7 +22,7 @@ export default function handler(req, res) {
       case 'GET':
         return handleGet(req, res, roomCode);
       case 'PUT':
-        return handlePut(req, res, roomCode);
+        return await handlePut(req, res, roomCode);
       case 'DELETE':
         return handleDelete(req, res, roomCode);
       default:
@@ -53,13 +53,15 @@ function handleGet(req, res, roomCode) {
   });
 }
 
-function handlePut(req, res, roomCode) {
+async function handlePut(req, res, roomCode) {
   const game = games.get(roomCode);
   if (!game) {
     return res.status(404).json({ error: 'Room not found' });
   }
 
-  const { gameState, lastMove, playerColor, action } = req.body;
+  // Parse request body
+  const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  const { gameState, lastMove, playerColor, action } = body;
 
   if (action === 'update-state') {
     game.gameState = gameState;

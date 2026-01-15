@@ -1,7 +1,7 @@
 // Create a new game room
 const games = getGamesStorage();
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,7 +16,9 @@ export default function handler(req, res) {
   }
 
   try {
-    const { host, guest } = req.body;
+    // Parse request body
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { host, guest } = body;
     
     if (!host || !guest) {
       return res.status(400).json({ error: 'Host and guest names required' });

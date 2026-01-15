@@ -119,7 +119,8 @@ class MultiplayerManager {
             // Show room code prominently
             alert(`✅ Room Created Successfully!\n\n📋 ROOM CODE: ${this.roomCode}\n\n✅ Share this code with your opponent to play across different devices!\n\nThey can join from any browser or device.`);
             
-            this.updateUI();
+            // Update UI without fetching (we already have the data)
+            this.updateUIWithoutFetch();
             this.startSyncing();
             this.showMessage(`Room created! Code: ${this.roomCode}`, 'success');
         } catch (error) {
@@ -256,6 +257,40 @@ class MultiplayerManager {
         }
     }
 
+    updateUIWithoutFetch() {
+        const roomInfo = document.getElementById('room-info');
+        const createBtn = document.getElementById('create-room-btn');
+        const joinSection = document.querySelector('.join-room-section');
+        const whitePlayerDisplay = document.getElementById('white-player-display');
+        const blackPlayerDisplay = document.getElementById('black-player-display');
+        const roomCodeDisplay = document.getElementById('room-code-display');
+
+        if (!roomInfo || !createBtn || !joinSection) {
+            console.error('updateUIWithoutFetch: Some DOM elements not found');
+            return;
+        }
+
+        if (this.roomCode) {
+            roomInfo.style.display = 'block';
+            createBtn.style.display = 'none';
+            joinSection.style.display = 'none';
+            
+            if (roomCodeDisplay) {
+                roomCodeDisplay.textContent = this.roomCode;
+                roomCodeDisplay.style.fontSize = '1.5rem';
+                roomCodeDisplay.style.fontWeight = 'bold';
+                roomCodeDisplay.style.color = '#667eea';
+                roomCodeDisplay.style.letterSpacing = '3px';
+            }
+            if (whitePlayerDisplay) whitePlayerDisplay.textContent = this.myName || 'Waiting...';
+            if (blackPlayerDisplay) blackPlayerDisplay.textContent = this.opponentName || 'Waiting...';
+        } else {
+            roomInfo.style.display = 'none';
+            createBtn.style.display = 'block';
+            joinSection.style.display = 'flex';
+        }
+    }
+
     async updateUI() {
         const roomInfo = document.getElementById('room-info');
         const createBtn = document.getElementById('create-room-btn');
@@ -285,6 +320,10 @@ class MultiplayerManager {
                 }
                 if (whitePlayerDisplay) whitePlayerDisplay.textContent = roomData.host || 'Waiting...';
                 if (blackPlayerDisplay) blackPlayerDisplay.textContent = roomData.guest || 'Waiting...';
+            } else {
+                // Fallback to local data if fetch fails
+                if (whitePlayerDisplay) whitePlayerDisplay.textContent = this.myName || 'Waiting...';
+                if (blackPlayerDisplay) blackPlayerDisplay.textContent = this.opponentName || 'Waiting...';
             }
         } else {
             roomInfo.style.display = 'none';

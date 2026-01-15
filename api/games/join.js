@@ -1,7 +1,7 @@
 // Join an existing game room
 const games = getGamesStorage();
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,7 +16,9 @@ export default function handler(req, res) {
   }
 
   try {
-    const { roomCode, guest } = req.body;
+    // Parse request body
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const { roomCode, guest } = body;
     
     if (!roomCode) {
       return res.status(400).json({ error: 'Room code required' });
