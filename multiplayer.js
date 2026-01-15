@@ -190,32 +190,70 @@ class MultiplayerManager {
                 return;
             }
 
-            // Join room via API
-            const response = await fetch(`${this.apiBase}/join`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    roomCode,
-                    guest: blackName
-                })
-            });
+            // Try to join via API first
+            let apiSuccess = false;
+            let roomData = null;
+            
+            try {
+                const response = await fetch(`${this.apiBase}/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        roomCode,
+                        guest: blackName
+                    })
+                });
 
-            if (!response.ok) {
-                const error = await response.json();
-                if (response.status === 404) {
-                    alert(`Room "${roomCode}" not found. Please check the room code and try again.`);
-                } else if (response.status === 400 && error.error === 'Room is full') {
-                    alert('Room is full. This room already has two players.');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Successfully joined room via API:', data);
+                    apiSuccess = true;
                 } else {
-                    alert(`Error joining room: ${error.error || 'Unknown error'}`);
+                    const error = await response.json().catch(() => ({}));
+                    if (response.status === 404) {
+                        console.warn('Room not found on server, trying localStorage fallback');
+                    } else if (response.status === 400 && error.error === 'Room is full') {
+                        alert('Room is full. This room already has two players.');
+                        return;
+                    } else {
+                        console.warn('API error, trying localStorage fallback:', error);
+                    }
                 }
-                return;
+            } catch (error) {
+                console.warn('API call failed, trying localStorage fallback:', error);
             }
 
-            const data = await response.json();
-            console.log('Successfully joined room:', data);
+            // Fallback to localStorage if API failed
+            if (!apiSuccess) {
+                // Check if room exists in localStorage (same browser)
+                const localRoomKey = `chess_room_${roomCode}`;
+                const localRoomDataStr = localStorage.getItem(localRoomKey);
+                
+                if (localRoomDataStr) {
+                    try {
+                        roomData = JSON.parse(localRoomDataStr);
+                        if (roomData.guestConnected) {
+                            alert('Room is full. This room already has two players.');
+                            return;
+                        }
+                        // Update room data
+                        roomData.guest = blackName;
+                        roomData.guestConnected = true;
+                        localStorage.setItem(localRoomKey, JSON.stringify(roomData));
+                        console.log('Joined room via localStorage fallback');
+                        alert(`⚠️ Note: API is not available. Joined in LOCAL MODE.\n\n⚠️ IMPORTANT: This only works if you're in the SAME browser as the host.\n\nFor cross-browser multiplayer, the API needs to be working.`);
+                    } catch (e) {
+                        console.error('Error parsing local room data:', e);
+                        alert(`Room "${roomCode}" not found. Please check the room code.\n\nNote: If the host created the room in a different browser, you need the API to be working for cross-browser multiplayer.`);
+                        return;
+                    }
+                } else {
+                    alert(`Room "${roomCode}" not found.\n\n⚠️ IMPORTANT: For cross-browser multiplayer, the API must be working.\n\nIf the host is in a different browser, the room won't be visible without the API.\n\nPlease check:\n1. Is the API deployed? (Try /api/test)\n2. Are you using the correct room code?`);
+                    return;
+                }
+            }
 
             // If already in a room, leave it first
             if (this.roomCode && this.roomCode !== roomCode) {
@@ -228,10 +266,14 @@ class MultiplayerManager {
             this.playerColor = 'black'; // Guest plays black
             this.myName = blackName;
 
-            // Get room data to set opponent name
-            const roomData = await this.fetchRoomData(roomCode);
+            // Get room data (from API or localStorage)
+            if (!roomData) {
+                roomData = await this.fetchRoomData(roomCode);
+            }
+            
             if (roomData) {
                 this.opponentName = roomData.host;
+                this._cachedRoomData = roomData;
             }
 
             // Save to localStorage
