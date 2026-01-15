@@ -1,9 +1,14 @@
-// Authentication system using localStorage
+// Authentication system - now supports database via API
 class AuthSystem {
     constructor() {
-        this.users = this.loadUsers();
+        this.apiBase = this.getApiBase();
         this.currentUser = this.getCurrentUser();
         this.init();
+    }
+
+    getApiBase() {
+        const origin = window.location.origin;
+        return `${origin}/api/auth`;
     }
 
     init() {
@@ -105,7 +110,7 @@ class AuthSystem {
         document.getElementById('success-message').classList.remove('show');
     }
 
-    handleSignup() {
+    async handleSignup() {
         const username = document.getElementById('signup-username').value.trim();
         const email = document.getElementById('signup-email').value.trim().toLowerCase();
         const password = document.getElementById('signup-password').value;
@@ -127,23 +132,56 @@ class AuthSystem {
             return;
         }
 
+        try {
+            // Try API first
+            const response = await fetch(`${this.apiBase}/signup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username,
+                    email,
+                    password
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Auto-login after signup
+                    this.setCurrentUser(data.user);
+                    this.showSuccess('Account created successfully! Redirecting to chess board...');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 500);
+                    return;
+                }
+            } else {
+                const error = await response.json();
+                this.showError(error.error || 'Failed to create account');
+                return;
+            }
+        } catch (error) {
+            console.warn('API signup failed, using localStorage fallback:', error);
+        }
+
+        // Fallback to localStorage if API fails
         if (this.users[username]) {
             this.showError('Username already exists');
             return;
         }
 
-        // Check if email is already registered
         const emailExists = Object.values(this.users).some(u => u.email && u.email.toLowerCase() === email);
         if (emailExists) {
             this.showError('Email is already registered. Please use a different email or login.');
             return;
         }
 
-        // Create user
         const user = {
             username: username,
             email: email,
-            password: this.hashPassword(password), // Simple hash (not secure for production)
+            password: this.hashPassword(password),
             createdAt: new Date().toISOString(),
             preferences: {
                 colors: {
@@ -161,20 +199,28 @@ class AuthSystem {
         this.users[username] = user;
         this.saveUsers();
 
-        // Auto-login after signup and redirect to chess board
         this.setCurrentUser({
             username: user.username,
             email: user.email,
             preferences: user.preferences
         });
 
-        this.showSuccess('Account created successfully! Redirecting to chess board...');
+        this.showSuccess('Account created (local mode). Redirecting...');
         setTimeout(() => {
             window.location.href = 'index.html';
         }, 500);
     }
 
-    handleLogin() {
+    loadUsers() {
+        const stored = localStorage.getItem('chess_users');
+        return stored ? JSON.parse(stored) : {};
+    }
+
+    saveUsers() {
+        localStorage.setItem('chess_users', JSON.stringify(this.users));
+    }
+
+    async handleLogin() {
         const usernameOrEmail = document.getElementById('login-username').value.trim();
         const password = document.getElementById('login-password').value;
 
@@ -183,58 +229,77 @@ class AuthSystem {
             return;
         }
 
-        // Debug: Log all users (remove in production)
-        console.log('All users:', this.users);
-        console.log('Searching for:', usernameOrEmail);
+        try {
+            // Try API first
+            const response = await fetch(`${this.apiBase}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    usernameOrEmail,
+                    password
+                })
+            });
 
-        // Try to find user by username first
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // Login successful
+                    this.setCurrentUser(data.user);
+                    window.location.href = 'index.html';
+                    return;
+                }
+            } else {
+                const error = await response.json();
+                if (error.fallback) {
+                    // Database not configured, fall back to localStorage
+                    console.log('Database not configured, using localStorage fallback');
+                } else {
+                    this.showError(error.error || 'Login failed');
+                    return;
+                }
+            }
+        } catch (error) {
+            console.warn('API login failed, using localStorage fallback:', error);
+        }
+
+        // Fallback to localStorage
         let user = this.users[usernameOrEmail];
 
-        // If not found by username, search by email
         if (!user) {
             const searchEmail = usernameOrEmail.toLowerCase();
-            console.log('Searching by email:', searchEmail);
             user = Object.values(this.users).find(u => {
                 if (u.email) {
-                    const userEmail = u.email.toLowerCase().trim();
-                    console.log('Comparing:', userEmail, 'with', searchEmail);
-                    return userEmail === searchEmail;
+                    return u.email.toLowerCase().trim() === searchEmail;
                 }
                 return false;
             });
         }
 
         if (!user) {
-            // Check if any users exist at all
             const userCount = Object.keys(this.users).length;
             if (userCount === 0) {
                 this.showError('No accounts found. Please sign up first.');
             } else {
-                this.showError(`Invalid username/email or password. Found ${userCount} user(s) in system.`);
+                this.showError('Invalid username/email or password');
             }
-            console.error('User not found. Available users:', Object.keys(this.users).map(u => ({
-                username: u,
-                email: this.users[u].email
-            })));
             return;
         }
 
         const hashedPassword = this.hashPassword(password);
-        console.log('Password check:', user.password, '===', hashedPassword);
 
         if (user.password !== hashedPassword) {
             this.showError('Invalid username/email or password');
             return;
         }
 
-        // Login successful
         this.setCurrentUser({
             username: user.username,
             email: user.email,
             preferences: user.preferences
         });
 
-        // Redirect immediately to chess board
         window.location.href = 'index.html';
     }
 
