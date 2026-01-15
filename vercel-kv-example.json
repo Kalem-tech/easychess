@@ -1,0 +1,15 @@
+[
+  {
+    "key": "chess_room_TEST01",
+    "value": {
+      "roomCode": "TEST01",
+      "host": "Player 1",
+      "guest": "Player 2",
+      "hostConnected": true,
+      "guestConnected": false,
+      "gameState": null,
+      "lastMove": null,
+      "createdAt": 1700000000000
+    }
+  }
+]

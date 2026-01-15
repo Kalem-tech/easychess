@@ -1,4 +1,6 @@
-// Create a new game room - Using Supabase for persistence
+// Create a new game room - Using Vercel KV for persistence
+import { kv } from '@vercel/kv';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -33,7 +35,17 @@ export default async function handler(req, res) {
     }
 
     // Generate room code
-    const roomCode = generateRoomCode();
+    let roomCode;
+    let attempts = 0;
+    do {
+      roomCode = generateRoomCode();
+      const exists = await kv.exists(`chess_room:${roomCode}`);
+      if (!exists) break;
+      attempts++;
+      if (attempts > 10) {
+        return res.status(500).json({ error: 'Failed to generate unique room code' });
+      }
+    } while (true);
     
     const game = {
       roomCode,
@@ -46,8 +58,17 @@ export default async function handler(req, res) {
       createdAt: Date.now()
     };
 
-    // Store in database (Supabase) or fallback to in-memory
-    await storeRoom(roomCode, game);
+    // Store in Vercel KV
+    try {
+      await kv.set(`chess_room:${roomCode}`, JSON.stringify(game), { ex: 86400 }); // Expire after 24 hours
+    } catch (kvError) {
+      console.error('KV storage error:', kvError);
+      // Fallback to in-memory if KV not configured
+      if (!global.gamesStorage) {
+        global.gamesStorage = new Map();
+      }
+      global.gamesStorage.set(roomCode, game);
+    }
     
     return res.status(201).json({
       roomCode,
@@ -61,34 +82,4 @@ export default async function handler(req, res) {
 
 function generateRoomCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
-async function storeRoom(roomCode, game) {
-  // Try Supabase first if configured
-  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
-    try {
-      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': process.env.SUPABASE_KEY,
-          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
-        },
-        body: JSON.stringify({
-          room_code: roomCode,
-          data: game,
-          created_at: new Date().toISOString()
-        })
-      });
-      if (response.ok) return;
-    } catch (e) {
-      console.log('Supabase storage failed, using fallback');
-    }
-  }
-  
-  // Fallback to in-memory (will be lost on cold start)
-  if (!global.gamesStorage) {
-    global.gamesStorage = new Map();
-  }
-  global.gamesStorage.set(roomCode, game);
 }

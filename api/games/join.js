@@ -1,4 +1,6 @@
-// Join an existing game room - Using Supabase for persistence
+// Join an existing game room - Using Vercel KV for persistence
+import { kv } from '@vercel/kv';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -51,24 +53,13 @@ export default async function handler(req, res) {
 }
 
 async function getRoom(roomCode) {
-  // Try Supabase first
-  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
-    try {
-      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms?room_code=eq.${roomCode}`, {
-        headers: {
-          'apikey': process.env.SUPABASE_KEY,
-          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.length > 0) {
-          return data[0].data;
-        }
-      }
-    } catch (e) {
-      console.log('Supabase fetch failed, using fallback');
+  try {
+    const data = await kv.get(`chess_room:${roomCode}`);
+    if (data) {
+      return typeof data === 'string' ? JSON.parse(data) : data;
     }
+  } catch (kvError) {
+    console.log('KV get failed, using fallback:', kvError);
   }
   
   // Fallback to in-memory
@@ -79,30 +70,14 @@ async function getRoom(roomCode) {
 }
 
 async function storeRoom(roomCode, game) {
-  // Try Supabase first
-  if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
-    try {
-      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/rooms?room_code=eq.${roomCode}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': process.env.SUPABASE_KEY,
-          'Authorization': `Bearer ${process.env.SUPABASE_KEY}`
-        },
-        body: JSON.stringify({
-          data: game,
-          updated_at: new Date().toISOString()
-        })
-      });
-      if (response.ok) return;
-    } catch (e) {
-      console.log('Supabase update failed');
+  try {
+    await kv.set(`chess_room:${roomCode}`, JSON.stringify(game), { ex: 86400 }); // Expire after 24 hours
+  } catch (kvError) {
+    console.log('KV set failed, using fallback:', kvError);
+    // Fallback to in-memory
+    if (!global.gamesStorage) {
+      global.gamesStorage = new Map();
     }
+    global.gamesStorage.set(roomCode, game);
   }
-  
-  // Fallback to in-memory
-  if (!global.gamesStorage) {
-    global.gamesStorage = new Map();
-  }
-  global.gamesStorage.set(roomCode, game);
 }
