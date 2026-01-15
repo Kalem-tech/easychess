@@ -86,38 +86,50 @@ class MultiplayerManager {
                 return;
             }
 
-            // Create room via API
+            // Generate room code locally first
+            const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            // Try to create room via API, but fallback to localStorage if it fails
             const apiUrl = `${this.apiBase}/create`;
             console.log('Creating room at:', apiUrl);
             
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    host: whiteName,
-                    guest: blackName
-                })
-            }).catch(error => {
-                console.error('Fetch error:', error);
-                throw new Error(`Network error: ${error.message}. Please check if the API is deployed correctly.`);
-            });
+            let apiSuccess = false;
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        host: whiteName,
+                        guest: blackName
+                    })
+                });
 
-            if (!response.ok) {
-                let errorMessage = 'Failed to create room';
-                try {
-                    const error = await response.json();
-                    errorMessage = error.error || errorMessage;
-                } catch (e) {
-                    errorMessage = `Server returned ${response.status}: ${response.statusText}`;
+                if (response.ok) {
+                    const data = await response.json();
+                    // Use server-generated room code if available
+                    if (data.roomCode) {
+                        this.roomCode = data.roomCode;
+                        apiSuccess = true;
+                        console.log('Room created on server with code:', this.roomCode);
+                    }
+                } else {
+                    console.warn('API returned error, using localStorage fallback');
                 }
-                throw new Error(errorMessage);
+            } catch (error) {
+                console.warn('API call failed, using localStorage-only mode:', error);
+                // Continue with localStorage fallback
             }
 
-            const data = await response.json();
-            this.roomCode = data.roomCode;
-            console.log('Room created with code:', this.roomCode);
+            // If API failed, use localStorage-only mode
+            if (!apiSuccess) {
+                this.roomCode = roomCode;
+                console.log('Room created locally with code:', this.roomCode);
+                alert(`⚠️ Note: API is not available. Room created in LOCAL MODE.\n\n📋 ROOM CODE: ${this.roomCode}\n\n⚠️ IMPORTANT: This room only works in the SAME browser.\n\nFor cross-browser multiplayer, the API needs to be working.`);
+            } else {
+                alert(`✅ Room Created Successfully!\n\n📋 ROOM CODE: ${this.roomCode}\n\n✅ Share this code with your opponent to play across different devices!\n\nThey can join from any browser or device.`);
+            }
             
             this.isHost = true;
             this.playerColor = 'white'; // Host plays white
@@ -128,7 +140,7 @@ class MultiplayerManager {
             localStorage.setItem('chess_current_room', this.roomCode);
             localStorage.setItem('chess_player_color', 'white');
             
-            // Save complete room data locally as backup
+            // Save complete room data locally
             const localRoomData = {
                 roomCode: this.roomCode,
                 host: whiteName,
@@ -137,15 +149,13 @@ class MultiplayerManager {
                 guestConnected: false,
                 gameState: null,
                 lastMove: null,
-                createdAt: Date.now()
+                createdAt: Date.now(),
+                apiEnabled: apiSuccess // Track if API is working
             };
             localStorage.setItem(`chess_room_${this.roomCode}`, JSON.stringify(localRoomData));
             
             // Cache it for immediate use
             this._cachedRoomData = localRoomData;
-            
-            // Show room code prominently
-            alert(`✅ Room Created Successfully!\n\n📋 ROOM CODE: ${this.roomCode}\n\n✅ Share this code with your opponent to play across different devices!\n\nThey can join from any browser or device.`);
             
             // Update UI without fetching (we already have the data)
             this.updateUIWithoutFetch();
