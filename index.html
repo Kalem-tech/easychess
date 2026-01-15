@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="cloud-container" id="cloud-container"></div>
+    <div class="rain-container" id="rain-container"></div>
+    <div class="container">
+        <header>
+            <h1>♔ Chess Game ♔</h1>
+            <div class="game-info">
+                <div class="turn-indicator">
+                    <span id="current-turn">White's Turn</span>
+                </div>
+                <div class="game-status" id="game-status"></div>
+                <div class="timers" style="display: none;">
+                    <div class="timer white-timer" id="white-timer">
+                        <div class="timer-label">White</div>
+                        <div class="timer-display" id="white-time">10:00</div>
+                    </div>
+                    <div class="timer black-timer" id="black-timer">
+                        <div class="timer-label">Black</div>
+                        <div class="timer-display" id="black-time">10:00</div>
+                    </div>
+                </div>
+                <div class="user-info" id="user-info">
+                    <span id="username-display"></span>
+                    <button id="logout-btn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div class="chess-container">
+                <div class="board-container">
+                    <div class="board-with-timers">
+                        <div class="row-timers">
+                            <div class="row-timer" id="row-timer-0" data-row="0" data-color="black">
+                                <div class="timer-label">Black</div>
+                                <div class="timer-display" id="black-time-row-0">10:00</div>
+                            </div>
+                            <div class="row-timer" id="row-timer-1" data-row="1" data-color="black">
+                                <div class="timer-label">Black</div>
+                                <div class="timer-display" id="black-time-row-1">10:00</div>
+                            </div>
+                            <div class="row-timer-spacer"></div>
+                            <div class="row-timer-spacer"></div>
+                            <div class="row-timer-spacer"></div>
+                            <div class="row-timer-spacer"></div>
+                            <div class="row-timer" id="row-timer-6" data-row="6" data-color="white">
+                                <div class="timer-label">White</div>
+                                <div class="timer-display" id="white-time-row-6">10:00</div>
+                            </div>
+                            <div class="row-timer" id="row-timer-7" data-row="7" data-color="white">
+                                <div class="timer-label">White</div>
+                                <div class="timer-display" id="white-time-row-7">10:00</div>
+                            </div>
+                        </div>
+                        <div id="chessboard" class="chessboard"></div>
+                        <div class="board-controls">
+                            <button id="start-game-btn" class="start-game-btn">Start Game</button>
+                            <button id="draw-btn" class="btn btn-secondary draw-btn">Draw</button>
+                            <button id="resign-btn" class="btn btn-secondary resign-btn">Resign</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar">
+                    <div class="multiplayer-section">
+                        <h3>Online Play</h3>
+                        <div class="player-names">
+                            <div class="player-name-input">
+                                <label for="white-player-name">White Player</label>
+                                <input type="text" id="white-player-name" placeholder="Enter username" value="Player 1">
+                            </div>
+                            <div class="player-name-input">
+                                <label for="black-player-name">Black Player</label>
+                                <input type="text" id="black-player-name" placeholder="Enter username" value="Player 2">
+                            </div>
+                        </div>
+                        <div class="room-controls">
+                            <button id="create-room-btn" class="btn btn-primary">Create Room</button>
+                            <div class="join-room-section">
+                                <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="6">
+                                <button id="join-room-btn" class="btn btn-secondary">Join Room</button>
+                                <button id="list-rooms-btn" class="btn btn-small" style="margin-top: 5px; font-size: 0.85rem; padding: 6px 12px;">Show Available Rooms</button>
+                            </div>
+                            <div id="room-info" class="room-info" style="display: none;">
+                                <div class="room-code-display">
+                                    <strong>Room Code:</strong> <span id="room-code-display"></span>
+                                    <button id="copy-room-code-btn" class="btn-small">Copy</button>
+                                </div>
+                                <div class="opponent-info">
+                                    <div><strong>White:</strong> <span id="white-player-display"></span></div>
+                                    <div><strong>Black:</strong> <span id="black-player-display"></span></div>
+                                </div>
+                                <button id="leave-room-btn" class="btn btn-secondary">Leave Room</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="timer-settings">
+                        <h3>Timer Settings</h3>
+                        <div class="timer-controls">
+                            <div class="timer-control-group">
+                                <label for="white-timer-minutes">White Player (Minutes)</label>
+                                <input type="number" id="white-timer-minutes" min="0" max="120" value="10" class="timer-input">
+                                <span class="timer-label-text">min</span>
+                            </div>
+                            <div class="timer-control-group">
+                                <label for="black-timer-minutes">Black Player (Minutes)</label>
+                                <input type="number" id="black-timer-minutes" min="0" max="120" value="10" class="timer-input">
+                                <span class="timer-label-text">min</span>
+                            </div>
+                            <button id="apply-timer-btn" class="btn btn-secondary" style="margin-top: 10px;">Apply Timer Settings</button>
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="new-game-btn" class="btn btn-primary">New Game</button>
+                        <button id="reset-btn" class="btn btn-secondary">Reset</button>
+                        <button id="play-bot-btn" class="btn btn-primary" style="margin-top: 10px;">Play Bot</button>
+                    </div>
+                    
+                    <div class="move-history">
+                        <h3>Move History</h3>
+                        <div id="move-list" class="move-list"></div>
+                    </div>
+                    
+                    <div class="captured-pieces">
+                        <div class="captured-section">
+                            <h4>White Captured</h4>
+                            <div id="white-captured" class="captured-container"></div>
+                        </div>
+                        <div class="captured-section">
+                            <h4>Black Captured</h4>
+                            <div id="black-captured" class="captured-container"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="customization">
+                        <h3>Customize Colors</h3>
+                        <div class="color-controls">
+                            <div class="color-control-group">
+                                <label for="light-square-color">Light Square</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="light-square-color" value="#f0d9b5">
+                                    <input type="text" id="light-square-text" value="#f0d9b5" class="color-text-input">
+                                </div>
+                            </div>
+                            <div class="color-control-group">
+                                <label for="dark-square-color">Dark Square</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="dark-square-color" value="#b58863">
+                                    <input type="text" id="dark-square-text" value="#b58863" class="color-text-input">
+                                </div>
+                            </div>
+                            <div class="color-control-group">
+                                <label for="white-piece-color">White Pieces</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="white-piece-color" value="#ffffff">
+                                    <input type="text" id="white-piece-text" value="#ffffff" class="color-text-input">
+                                </div>
+                            </div>
+                            <div class="color-control-group">
+                                <label for="black-piece-color">Black Pieces</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="black-piece-color" value="#000000">
+                                    <input type="text" id="black-piece-text" value="#000000" class="color-text-input">
+                                </div>
+                            </div>
+                            <div class="color-control-group">
+                                <label for="board-container-color">Board Container</label>
+                                <div class="color-input-group">
+                                    <input type="color" id="board-container-color" value="#ffffff">
+                                    <input type="text" id="board-container-text" value="#ffffff" class="color-text-input">
+                                </div>
+                            </div>
+                            <div class="color-control-group">
+                                <label for="background-theme-selector">Background Theme</label>
+                                <select id="background-theme-selector" class="piece-set-selector">
+                                    <optgroup label="Nature">
+                                        <option value="rainy">Rainy Storm</option>
+                                        <option value="ocean">Ocean Waves</option>
+                                        <option value="forest">Forest Green</option>
+                                        <option value="sunset">Sunset Sky</option>
+                                        <option value="aurora">Aurora Borealis</option>
+                                        <option value="mountain">Mountain Peak</option>
+                                        <option value="desert">Desert Dunes</option>
+                                        <option value="tropical">Tropical Paradise</option>
+                                    </optgroup>
+                                    <optgroup label="Space & Galaxy">
+                                        <option value="space">Deep Space</option>
+                                        <option value="nebula">Cosmic Nebula</option>
+                                        <option value="galaxy">Milky Way</option>
+                                        <option value="mars">Mars Surface</option>
+                                        <option value="jupiter">Jupiter Storm</option>
+                                    </optgroup>
+                                    <optgroup label="Abstract & Modern">
+                                        <option value="gradient1">Purple Dream</option>
+                                        <option value="gradient2">Blue Ocean</option>
+                                        <option value="gradient3">Sunset Fire</option>
+                                        <option value="gradient4">Emerald Green</option>
+                                        <option value="gradient5">Rose Gold</option>
+                                        <option value="neon">Neon Nights</option>
+                                        <option value="cyberpunk">Cyberpunk City</option>
+                                        <option value="matrix">Matrix Code</option>
+                                    </optgroup>
+                                    <optgroup label="Dark & Moody">
+                                        <option value="dark1">Midnight Blue</option>
+                                        <option value="dark2">Charcoal Storm</option>
+                                        <option value="dark3">Deep Purple</option>
+                                        <option value="dark4">Blood Red</option>
+                                        <option value="dark5">Shadow Realm</option>
+                                    </optgroup>
+                                    <optgroup label="Bright & Vibrant">
+                                        <option value="bright1">Sunshine Yellow</option>
+                                        <option value="bright2">Coral Reef</option>
+                                        <option value="bright3">Lavender Fields</option>
+                                        <option value="bright4">Mint Fresh</option>
+                                        <option value="bright5">Peachy Keen</option>
+                                    </optgroup>
+                                    <optgroup label="Seasonal">
+                                        <option value="spring">Spring Bloom</option>
+                                        <option value="summer">Summer Beach</option>
+                                        <option value="autumn">Autumn Leaves</option>
+                                        <option value="winter">Winter Frost</option>
+                                        <option value="christmas">Christmas Eve</option>
+                                    </optgroup>
+                                    <optgroup label="Artistic">
+                                        <option value="watercolor">Watercolor</option>
+                                        <option value="pastel">Pastel Dreams</option>
+                                        <option value="vintage">Vintage Film</option>
+                                        <option value="retro">Retro Wave</option>
+                                        <option value="abstract">Abstract Art</option>
+                                    </optgroup>
+                                    <optgroup label="Special Effects">
+                                        <option value="fire">Fire & Flame</option>
+                                        <option value="ice">Ice Crystal</option>
+                                        <option value="electric">Electric Storm</option>
+                                        <option value="rainbow">Rainbow Spectrum</option>
+                                        <option value="holographic">Holographic</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="color-control-group">
+                                <label for="piece-set-selector">Piece Style</label>
+                                <select id="piece-set-selector" class="piece-set-selector">
+                                    <optgroup label="Classic">
+                                        <option value="unicode">Unicode Symbols</option>
+                                        <option value="letters">Letter Notation</option>
+                                        <option value="bold">Bold Unicode</option>
+                                        <option value="circles">Circle Symbols</option>
+                                        <option value="squares">Square Symbols</option>
+                                        <option value="simple">Simple Shapes</option>
+                                    </optgroup>
+                                    <optgroup label="Anime">
+                                        <option value="anime">Anime Characters</option>
+                                        <option value="demonSlayer">Demon Slayer - Main Cast</option>
+                                        <option value="demonSlayerHashira">Demon Slayer - Hashira</option>
+                                        <option value="demonSlayerKamado">Demon Slayer - Kamado Family</option>
+                                        <option value="naruto">Naruto</option>
+                                        <option value="onePiece">One Piece</option>
+                                        <option value="attackOnTitan">Attack on Titan</option>
+                                        <option value="dragonBall">Dragon Ball</option>
+                                        <option value="myHeroAcademia">My Hero Academia</option>
+                                    </optgroup>
+                                    <optgroup label="Movies & TV">
+                                        <option value="starWars">Star Wars</option>
+                                        <option value="harryPotter">Harry Potter</option>
+                                        <option value="gameOfThrones">Game of Thrones</option>
+                                        <option value="marvel">Marvel</option>
+                                        <option value="dc">DC Comics</option>
+                                        <option value="breakingBad">Breaking Bad</option>
+                                        <option value="strangerThings">Stranger Things</option>
+                                        <option value="matrix">The Matrix</option>
+                                        <option value="lordOfTheRings">Lord of the Rings</option>
+                                        <option value="theOffice">The Office</option>
+                                        <option value="friends">Friends</option>
+                                        <option value="starTrek">Star Trek</option>
+                                        <option value="disney">Disney</option>
+                                    </optgroup>
+                                    <optgroup label="Video Games">
+                                        <option value="pokemon">Pokemon</option>
+                                        <option value="mario">Super Mario</option>
+                                        <option value="minecraft">Minecraft</option>
+                                        <option value="zelda">Zelda</option>
+                                        <option value="fortnite">Fortnite</option>
+                                        <option value="amongUs">Among Us</option>
+                                        <option value="roblox">Roblox</option>
+                                    </optgroup>
+                                    <optgroup label="Music & Tech">
+                                        <option value="rock">Rock Music</option>
+                                        <option value="hipHop">Hip Hop</option>
+                                        <option value="apple">Apple</option>
+                                        <option value="google">Google</option>
+                                    </optgroup>
+                                    <optgroup label="Sports & Food">
+                                        <option value="football">Football</option>
+                                        <option value="basketball">Basketball</option>
+                                        <option value="pizza">Pizza</option>
+                                        <option value="coffee">Coffee</option>
+                                    </optgroup>
+                                    <optgroup label="Nature & Space">
+                                        <option value="ocean">Ocean Life</option>
+                                        <option value="forest">Forest</option>
+                                        <option value="space">Space</option>
+                                    </optgroup>
+                                    <optgroup label="Holidays">
+                                        <option value="christmas">Christmas</option>
+                                        <option value="halloween">Halloween</option>
+                                        <option value="valentines">Valentine's Day</option>
+                                        <option value="easter">Easter</option>
+                                    </optgroup>
+                                    <optgroup label="Special">
+                                        <option value="retro">Retro 80s</option>
+                                        <option value="cyberpunk">Cyberpunk</option>
+                                        <option value="emoji">Emoji Party</option>
+                                        <option value="rainbow">Rainbow</option>
+                                        <option value="neon">Neon</option>
+                                        <option value="instagram">Instagram</option>
+                                        <option value="tiktok">TikTok</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="preset-themes">
+                            <h4>Preset Themes</h4>
+                            <div class="theme-buttons">
+                                <button class="theme-btn" data-theme="classic">Classic</button>
+                                <button class="theme-btn" data-theme="ocean">Ocean</button>
+                                <button class="theme-btn" data-theme="forest">Forest</button>
+                                <button class="theme-btn" data-theme="sunset">Sunset</button>
+                                <button class="theme-btn" data-theme="monochrome">Monochrome</button>
+                            </div>
+                        </div>
+                        <button id="reset-colors-btn" class="btn btn-secondary">Reset to Default</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="multiplayer.js"></script>
+    <script src="chess.js"></script>
+    <script src="rain.js"></script>
+</body>
+</html>
