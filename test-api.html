@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 API Test Page</h1>
+    <p>Use this page to test if your Vercel API endpoints are working.</p>
+
+    <div class="test-section">
+        <h2>1. Test Basic API Endpoint</h2>
+        <button onclick="testBasic()">Test /api/test</button>
+        <div id="test-basic-result" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Create Room</h2>
+        <input type="text" id="host-name" placeholder="Host Name" value="Player 1">
+        <input type="text" id="guest-name" placeholder="Guest Name" value="Player 2">
+        <button onclick="testCreateRoom()">Test Create Room</button>
+        <div id="test-create-result" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Join Room</h2>
+        <input type="text" id="room-code" placeholder="Room Code (6 characters)">
+        <input type="text" id="join-name" placeholder="Your Name" value="Player 2">
+        <button onclick="testJoinRoom()">Test Join Room</button>
+        <div id="test-join-result" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Get Room</h2>
+        <input type="text" id="get-room-code" placeholder="Room Code">
+        <button onclick="testGetRoom()">Test Get Room</button>
+        <div id="test-get-result" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        const apiBase = window.location.origin + '/api/games';
+
+        async function testBasic() {
+            const resultDiv = document.getElementById('test-basic-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch('/api/test');
+                const data = await response.json();
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ SUCCESS\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ ERROR\n${error.message}\n\nThis means the API endpoint is not accessible.`;
+            }
+        }
+
+        async function testCreateRoom() {
+            const resultDiv = document.getElementById('test-create-result');
+            const host = document.getElementById('host-name').value;
+            const guest = document.getElementById('guest-name').value;
+            
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${apiBase}/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ host, guest })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ SUCCESS\nStatus: ${response.status}\nRoom Code: ${data.roomCode}\n\nFull Response: ${JSON.stringify(data, null, 2)}`;
+                    document.getElementById('room-code').value = data.roomCode;
+                    document.getElementById('get-room-code').value = data.roomCode;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ ERROR\nStatus: ${response.status}\nError: ${data.error || JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ NETWORK ERROR\n${error.message}\n\nThis usually means:\n- API endpoint doesn't exist\n- CORS issue\n- Network problem`;
+            }
+        }
+
+        async function testJoinRoom() {
+            const resultDiv = document.getElementById('test-join-result');
+            const roomCode = document.getElementById('room-code').value.trim().toUpperCase();
+            const guest = document.getElementById('join-name').value;
+            
+            if (!roomCode || roomCode.length !== 6) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Please enter a valid 6-character room code';
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${apiBase}/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ roomCode, guest })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ SUCCESS\nStatus: ${response.status}\nResponse: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ ERROR\nStatus: ${response.status}\nError: ${data.error || JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ NETWORK ERROR\n${error.message}`;
+            }
+        }
+
+        async function testGetRoom() {
+            const resultDiv = document.getElementById('test-get-result');
+            const roomCode = document.getElementById('get-room-code').value.trim().toUpperCase();
+            
+            if (!roomCode) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 'Please enter a room code';
+                return;
+            }
+
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.textContent = 'Testing...';
+
+            try {
+                const response = await fetch(`${apiBase}/${roomCode}`);
+                const data = await response.json();
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `✅ SUCCESS\nStatus: ${response.status}\n\nRoom Data:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `❌ ERROR\nStatus: ${response.status}\nError: ${data.error || 'Room not found'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ NETWORK ERROR\n${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
