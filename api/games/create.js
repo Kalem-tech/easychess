@@ -16,8 +16,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Parse request body
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    // Parse request body - Vercel may send it as a string or already parsed
+    let body;
+    if (typeof req.body === 'string') {
+      try {
+        body = JSON.parse(req.body);
+      } catch (e) {
+        return res.status(400).json({ error: 'Invalid JSON in request body' });
+      }
+    } else {
+      body = req.body || {};
+    }
+    
     const { host, guest } = body;
     
     if (!host || !guest) {

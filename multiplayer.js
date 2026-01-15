@@ -87,7 +87,10 @@ class MultiplayerManager {
             }
 
             // Create room via API
-            const response = await fetch(`${this.apiBase}/create`, {
+            const apiUrl = `${this.apiBase}/create`;
+            console.log('Creating room at:', apiUrl);
+            
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -96,11 +99,20 @@ class MultiplayerManager {
                     host: whiteName,
                     guest: blackName
                 })
+            }).catch(error => {
+                console.error('Fetch error:', error);
+                throw new Error(`Network error: ${error.message}. Please check if the API is deployed correctly.`);
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Failed to create room');
+                let errorMessage = 'Failed to create room';
+                try {
+                    const error = await response.json();
+                    errorMessage = error.error || errorMessage;
+                } catch (e) {
+                    errorMessage = `Server returned ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
