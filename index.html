@@ -29,42 +29,116 @@
                 </div>
                 <div class="user-info" id="user-info">
                     <span id="username-display"></span>
+                    <button id="settings-btn" class="settings-btn" title="Settings">⚙️</button>
                     <button id="logout-btn" class="logout-btn">Logout</button>
                 </div>
             </div>
         </header>
 
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="settings-modal">
+            <div class="settings-modal-content">
+                <div class="settings-modal-header">
+                    <h2>⚙️ Settings</h2>
+                    <button class="settings-close-btn" id="settings-close-btn">&times;</button>
+                </div>
+                <div class="settings-modal-body">
+                    <div class="settings-section">
+                        <h3>Quick Settings</h3>
+                        <div class="settings-options">
+                            <button class="settings-option-btn" id="settings-profile-btn">
+                                <span>👤</span> Profile Settings
+                            </button>
+                            <button class="settings-option-btn" id="settings-customization-btn">
+                                <span>🎨</span> Customize Colors & Themes
+                            </button>
+                            <button class="settings-option-btn" id="settings-timer-btn">
+                                <span>⏱️</span> Timer Settings
+                            </button>
+                            <button class="settings-option-btn" id="settings-bot-btn">
+                                <span>🤖</span> Bot Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <main>
             <div class="chess-container">
                 <div class="board-container">
                     <div class="board-with-timers">
-                        <div class="row-timers">
-                            <div class="row-timer" id="row-timer-0" data-row="0" data-color="black">
-                                <div class="timer-label">Black</div>
-                                <div class="timer-display" id="black-time-row-0">10:00</div>
+                        <div class="side-timers">
+                            <div class="timers-box-title">⏱️ TIMERS</div>
+                            
+                            <!-- Black Timer & Profile -->
+                            <div class="timer-with-profile">
+                                <div class="side-timer side-timer-row-4" id="side-timer-black" data-color="black" data-row="4">
+                                    <div class="timer-profile-pic" id="black-timer-profile-pic">
+                                        <span class="timer-profile-icon">♚</span>
+                                    </div>
+                                    <div class="timer-label">BLACK</div>
+                                    <div class="timer-display" id="black-time-side">10:00</div>
+                                </div>
+                                <div class="timer-player-profile black-timer-profile">
+                                    <div class="timer-profile-avatar" id="black-profile-avatar">♟</div>
+                                    <div class="timer-profile-name" id="black-profile-name">Player 2</div>
+                                </div>
                             </div>
-                            <div class="row-timer" id="row-timer-1" data-row="1" data-color="black">
-                                <div class="timer-label">Black</div>
-                                <div class="timer-display" id="black-time-row-1">10:00</div>
-                            </div>
-                            <div class="row-timer-spacer"></div>
-                            <div class="row-timer-spacer"></div>
-                            <div class="row-timer-spacer"></div>
-                            <div class="row-timer-spacer"></div>
-                            <div class="row-timer" id="row-timer-6" data-row="6" data-color="white">
-                                <div class="timer-label">White</div>
-                                <div class="timer-display" id="white-time-row-6">10:00</div>
-                            </div>
-                            <div class="row-timer" id="row-timer-7" data-row="7" data-color="white">
-                                <div class="timer-label">White</div>
-                                <div class="timer-display" id="white-time-row-7">10:00</div>
+                            
+                            <!-- White Timer & Profile -->
+                            <div class="timer-with-profile">
+                                <div class="side-timer side-timer-row-5" id="side-timer-white" data-color="white" data-row="5">
+                                    <div class="timer-profile-pic" id="white-timer-profile-pic">
+                                        <span class="timer-profile-icon">♔</span>
+                                    </div>
+                                    <div class="timer-label">WHITE</div>
+                                    <div class="timer-display" id="white-time-side">10:00</div>
+                                </div>
+                                <div class="timer-player-profile white-timer-profile">
+                                    <div class="timer-profile-avatar" id="white-profile-avatar">♙</div>
+                                    <div class="timer-profile-name" id="white-profile-name">Player 1</div>
+                                </div>
                             </div>
                         </div>
-                        <div id="chessboard" class="chessboard"></div>
+                        <div id="chessboard" class="chessboard">
+                            <div class="player-profiles">
+                                <div class="player-profile white-profile">
+                                    <div class="profile-avatar">
+                                        <span class="avatar-icon">♔</span>
+                                    </div>
+                                    <div class="profile-info">
+                                        <div class="profile-name" id="white-player-profile">White</div>
+                                        <div class="profile-role">White Player</div>
+                                    </div>
+                                    <div class="profile-status" id="white-player-status"></div>
+                                </div>
+                                <div class="player-profile black-profile">
+                                    <div class="profile-avatar">
+                                        <span class="avatar-icon">♚</span>
+                                    </div>
+                                    <div class="profile-info">
+                                        <div class="profile-name" id="black-player-profile">Black</div>
+                                        <div class="profile-role">Black Player</div>
+                                    </div>
+                                    <div class="profile-status" id="black-player-status"></div>
+                                </div>
+                                <button class="profile-button white-profile-button" id="white-profile-button" title="View White Player Profile">
+                                    <span class="profile-button-icon">👤</span>
+                                </button>
+                            </div>
+                        </div>
                         <div class="board-controls">
                             <button id="start-game-btn" class="start-game-btn">Start Game</button>
                             <button id="draw-btn" class="btn btn-secondary draw-btn">Draw</button>
                             <button id="resign-btn" class="btn btn-secondary resign-btn">Resign</button>
+                            <div class="color-selector">
+                                <label for="player-color-select" class="color-select-label">Play As:</label>
+                                <select id="player-color-select" class="color-select">
+                                    <option value="white" selected>White</option>
+                                    <option value="black">Black</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -76,14 +150,39 @@
                             <div class="player-name-input">
                                 <label for="white-player-name">White Player</label>
                                 <input type="text" id="white-player-name" placeholder="Enter username" value="Player 1">
+                                <div class="profile-picture-upload">
+                                    <label for="white-player-pic" class="profile-pic-label">
+                                        <span class="profile-pic-icon">📷</span>
+                                        <span class="profile-pic-text">Upload Profile Picture</span>
+                                    </label>
+                                    <input type="file" id="white-player-pic" accept="image/*" style="display: none;">
+                                    <div class="profile-pic-preview" id="white-player-pic-preview"></div>
+                                </div>
                             </div>
                             <div class="player-name-input">
                                 <label for="black-player-name">Black Player</label>
                                 <input type="text" id="black-player-name" placeholder="Enter username" value="Player 2">
+                                <div class="profile-picture-upload">
+                                    <label for="black-player-pic" class="profile-pic-label">
+                                        <span class="profile-pic-icon">📷</span>
+                                        <span class="profile-pic-text">Upload Profile Picture</span>
+                                    </label>
+                                    <input type="file" id="black-player-pic" accept="image/*" style="display: none;">
+                                    <div class="profile-pic-preview" id="black-player-pic-preview"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="room-controls">
+                            <!-- Color Selection for Creating Room -->
+                            <div class="color-select-section" style="margin-bottom: 10px;">
+                                <label style="font-weight: 600; margin-right: 10px;">Play as:</label>
+                                <select id="create-color-select" style="padding: 8px 12px; border-radius: 6px; border: 2px solid #667eea; font-size: 1rem;">
+                                    <option value="white">⬜ White (moves first)</option>
+                                    <option value="black">⬛ Black</option>
+                                </select>
+                            </div>
                             <button id="create-room-btn" class="btn btn-primary">Create Room</button>
+                            
                             <div class="join-room-section">
                                 <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="6">
                                 <button id="join-room-btn" class="btn btn-secondary">Join Room</button>
@@ -98,7 +197,20 @@
                                     <div><strong>White:</strong> <span id="white-player-display"></span></div>
                                     <div><strong>Black:</strong> <span id="black-player-display"></span></div>
                                 </div>
-                                <button id="leave-room-btn" class="btn btn-secondary">Leave Room</button>
+                                
+                                <!-- Invite Link Section -->
+                                <div class="invite-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                                    <div style="margin-bottom: 10px;">
+                                        <input type="text" id="invite-friend-name" placeholder="Friend's name (optional)" 
+                                               style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 150px; margin-right: 5px;">
+                                        <button id="copy-invite-link-btn" class="btn btn-primary" style="padding: 8px 15px;">
+                                            Invite Player
+                                        </button>
+                                    </div>
+                                    <div id="invite-link-preview" style="font-size: 0.85rem; color: #666; word-break: break-all;"></div>
+                                </div>
+                                
+                                <button id="leave-room-btn" class="btn btn-secondary" style="margin-top: 15px;">Leave Room</button>
                             </div>
                         </div>
                     </div>
@@ -120,10 +232,27 @@
                         </div>
                     </div>
                     
+                    <div class="bot-settings">
+                        <h3>Bot Settings</h3>
+                        <div class="bot-name-input">
+                            <label for="bot-name">Bot Name</label>
+                            <input type="text" id="bot-name" placeholder="Enter bot name" value="ChessBot" maxlength="20">
+                        </div>
+                        <div class="bot-difficulty-input">
+                            <label for="bot-difficulty">Difficulty</label>
+                            <select id="bot-difficulty" class="difficulty-select">
+                                <option value="easy">Easy</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="hard">Hard</option>
+                                <option value="expert">Expert</option>
+                            </select>
+                        </div>
+                        <button id="play-bot-btn" class="btn btn-primary" style="margin-top: 10px;">Play Bot</button>
+                    </div>
+                    
                     <div class="controls">
                         <button id="new-game-btn" class="btn btn-primary">New Game</button>
                         <button id="reset-btn" class="btn btn-secondary">Reset</button>
-                        <button id="play-bot-btn" class="btn btn-primary" style="margin-top: 10px;">Play Bot</button>
                     </div>
                     
                     <div class="move-history">
@@ -345,6 +474,9 @@
         </main>
     </div>
 
+    <!-- PeerJS for peer-to-peer multiplayer -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    
     <script src="auth.js"></script>
     <script src="multiplayer.js"></script>
     <script src="chess.js"></script>

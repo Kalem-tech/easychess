@@ -7,6 +7,10 @@
     "node": "24.x"
   },
   "dependencies": {
-    "@vercel/kv": "^1.0.0"
+    "convex": "^1.15.0"
+  },
+  "scripts": {
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy"
   }
 }

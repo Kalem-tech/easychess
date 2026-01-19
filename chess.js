@@ -811,6 +811,7 @@ class ChessGame {
         this.capturedPieces = { white: [], black: [] };
         this.gameOver = false;
         this.inCheck = { white: false, black: false };
+        this.boardFlipped = false; // Track if board is flipped for black's perspective
         
         // Castling rights: track if king and rooks have moved
         this.castlingRights = {
@@ -824,6 +825,14 @@ class ChessGame {
         // Bot mode
         this.botMode = false;
         this.botColor = 'black'; // Bot plays as black by default
+        // Bot difficulty: 'easy', 'medium', 'hard', 'expert'
+        // Load from localStorage if available, default to 'medium'
+        const savedDifficulty = localStorage.getItem('botDifficulty');
+        this.botDifficulty = savedDifficulty || 'medium';
+        // Bot name: customizable name for the bot
+        // Load from localStorage if available, default to 'ChessBot'
+        const savedBotName = localStorage.getItem('botName');
+        this.botName = savedBotName || 'ChessBot';
         
         // Timer system - 10 minutes (600 seconds) per player
         this.timers = {
@@ -906,6 +915,41 @@ class ChessGame {
         
         return board;
     }
+    
+    swapBoardPieces() {
+        // Rotate the board 180 degrees - flip both rows AND columns
+        // This properly shows black's perspective with queen on her color
+        const newBoard = Array(8).fill(null).map(() => Array(8).fill(null));
+        
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const piece = this.board[row][col];
+                if (piece) {
+                    // Rotate 180 degrees: flip both row and column
+                    const newRow = 7 - row;
+                    const newCol = 7 - col;
+                    newBoard[newRow][newCol] = { type: piece.type, color: piece.color };
+                }
+            }
+        }
+        
+        this.board = newBoard;
+        
+        // Also swap castling rights
+        const tempCastling = { ...this.castlingRights.white };
+        this.castlingRights.white = { ...this.castlingRights.black };
+        this.castlingRights.black = tempCastling;
+        
+        // Swap captured pieces
+        const tempCaptured = [...this.capturedPieces.white];
+        this.capturedPieces.white = [...this.capturedPieces.black];
+        this.capturedPieces.black = tempCaptured;
+        
+        // Swap check status
+        const tempCheck = this.inCheck.white;
+        this.inCheck.white = this.inCheck.black;
+        this.inCheck.black = tempCheck;
+    }
 
     init() {
         // First, clear any saved blue colors from localStorage
@@ -929,6 +973,22 @@ class ChessGame {
         }
         
         this.setupUserInterface();
+        
+        // Load saved player color preference ONLY for single player
+        // In multiplayer, the color is determined by host/guest status
+        const savedRoom = localStorage.getItem('chess_current_room');
+        if (!savedRoom) {
+            // Not in a multiplayer room - use saved color preference
+            const savedColor = localStorage.getItem('playerColor');
+            if (savedColor && savedColor === 'black') {
+                // Swap pieces if user previously selected black (single player only)
+                this.swapBoardPieces();
+                this.currentPlayer = 'black';
+                this.boardFlipped = true;
+            }
+        }
+        // If in a multiplayer room, the MultiplayerManager will set up orientation
+        
         this.renderBoard();
         this.setupEventListeners();
         this.updateGameInfo();
@@ -954,10 +1014,13 @@ class ChessGame {
         this.initializeTimers();
         // Don't start timer automatically - wait for Start Game button
         
-        // Initialize multiplayer manager
-        if (typeof MultiplayerManager !== 'undefined') {
-            this.multiplayer = new MultiplayerManager(this);
-        }
+        // Multiplayer manager will be initialized by multiplayer.js
+        // and set via window.chessGame.multiplayer = ...
+        
+        // Initialize timer profile pictures on page load
+        setTimeout(() => {
+            this.updateTimerProfilePics();
+        }, 100);
     }
     
     initializeTimers() {
@@ -1038,16 +1101,15 @@ class ChessGame {
             blackTimeEl.textContent = this.formatTime(this.timers.black);
         }
         
-        // Update row timers (visible on board)
-        const whiteTimeRow6 = document.getElementById('white-time-row-6');
-        const whiteTimeRow7 = document.getElementById('white-time-row-7');
-        const blackTimeRow0 = document.getElementById('black-time-row-0');
-        const blackTimeRow1 = document.getElementById('black-time-row-1');
+        // Update side timers (visible on board left side)
+        const whiteTimeSide = document.getElementById('white-time-side');
+        const blackTimeSide = document.getElementById('black-time-side');
         
-        if (whiteTimeRow6) whiteTimeRow6.textContent = this.formatTime(this.timers.white);
-        if (whiteTimeRow7) whiteTimeRow7.textContent = this.formatTime(this.timers.white);
-        if (blackTimeRow0) blackTimeRow0.textContent = this.formatTime(this.timers.black);
-        if (blackTimeRow1) blackTimeRow1.textContent = this.formatTime(this.timers.black);
+        if (whiteTimeSide) whiteTimeSide.textContent = this.formatTime(this.timers.white);
+        if (blackTimeSide) blackTimeSide.textContent = this.formatTime(this.timers.black);
+        
+        // Update timer profile pictures
+        this.updateTimerProfilePics();
         
         // Update active state for header timers
         if (whiteTimerEl && blackTimerEl) {
@@ -1076,37 +1138,31 @@ class ChessGame {
             }
         }
         
-        // Update active state for row timers
-        const rowTimer0 = document.getElementById('row-timer-0');
-        const rowTimer1 = document.getElementById('row-timer-1');
-        const rowTimer6 = document.getElementById('row-timer-6');
-        const rowTimer7 = document.getElementById('row-timer-7');
+        // Update active state for side timers
+        const sideTimerWhite = document.getElementById('side-timer-white');
+        const sideTimerBlack = document.getElementById('side-timer-black');
         
-        // Reset all row timers
-        [rowTimer0, rowTimer1, rowTimer6, rowTimer7].forEach(timer => {
+        // Reset all side timers
+        [sideTimerWhite, sideTimerBlack].forEach(timer => {
             if (timer) {
                 timer.classList.remove('active', 'low-time');
             }
         });
         
-        // Set active state for current player's row timers
+        // Set active state for current player's side timer
         if (this.activeTimer === 'white') {
-            if (rowTimer6) rowTimer6.classList.add('active');
-            if (rowTimer7) rowTimer7.classList.add('active');
+            if (sideTimerWhite) sideTimerWhite.classList.add('active');
             
             // Add low-time warning
             if (this.timers.white < 60) {
-                if (rowTimer6) rowTimer6.classList.add('low-time');
-                if (rowTimer7) rowTimer7.classList.add('low-time');
+                if (sideTimerWhite) sideTimerWhite.classList.add('low-time');
             }
         } else if (this.activeTimer === 'black') {
-            if (rowTimer0) rowTimer0.classList.add('active');
-            if (rowTimer1) rowTimer1.classList.add('active');
+            if (sideTimerBlack) sideTimerBlack.classList.add('active');
             
             // Add low-time warning
             if (this.timers.black < 60) {
-                if (rowTimer0) rowTimer0.classList.add('low-time');
-                if (rowTimer1) rowTimer1.classList.add('low-time');
+                if (sideTimerBlack) sideTimerBlack.classList.add('low-time');
             }
         }
     }
@@ -1165,7 +1221,12 @@ class ChessGame {
         this.stopTimer();
         this.gameOver = true;
         const winner = player === 'white' ? 'Black' : 'White';
-        document.getElementById('game-status').textContent = `Time's up! ${winner} wins!`;
+        // Use bot name if bot is the winner
+        let winnerName = winner;
+        if (this.botMode && winner === (this.botColor === 'white' ? 'White' : 'Black')) {
+            winnerName = this.botName;
+        }
+        document.getElementById('game-status').textContent = `Time's up! ${winnerName} wins!`;
         this.updateTimerDisplay();
     }
     
@@ -1185,35 +1246,131 @@ class ChessGame {
                 });
             }
         }
+        
+        // Setup settings button
+        this.setupSettingsButton();
+    }
+    
+    setupSettingsButton() {
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const settingsCloseBtn = document.getElementById('settings-close-btn');
+        const profileBtn = document.getElementById('settings-profile-btn');
+        const customizationBtn = document.getElementById('settings-customization-btn');
+        const timerBtn = document.getElementById('settings-timer-btn');
+        const botBtn = document.getElementById('settings-bot-btn');
+        
+        // Open settings modal
+        if (settingsBtn && settingsModal) {
+            settingsBtn.addEventListener('click', () => {
+                settingsModal.classList.add('show');
+            });
+        }
+        
+        // Close settings modal
+        if (settingsCloseBtn && settingsModal) {
+            settingsCloseBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('show');
+            });
+        }
+        
+        // Close modal when clicking outside
+        if (settingsModal) {
+            settingsModal.addEventListener('click', (e) => {
+                if (e.target === settingsModal) {
+                    settingsModal.classList.remove('show');
+                }
+            });
+        }
+        
+        // Scroll to profile/player names section
+        if (profileBtn) {
+            profileBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('show');
+                const playerNamesSection = document.querySelector('.player-names');
+                if (playerNamesSection) {
+                    setTimeout(() => {
+                        playerNamesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300);
+                }
+            });
+        }
+        
+        // Scroll to customization section
+        if (customizationBtn) {
+            customizationBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('show');
+                const customizationSection = document.querySelector('.customization');
+                if (customizationSection) {
+                    setTimeout(() => {
+                        customizationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300);
+                }
+            });
+        }
+        
+        // Scroll to timer settings
+        if (timerBtn) {
+            timerBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('show');
+                const timerSection = document.querySelector('.timer-settings');
+                if (timerSection) {
+                    setTimeout(() => {
+                        timerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300);
+                }
+            });
+        }
+        
+        // Scroll to bot settings
+        if (botBtn) {
+            botBtn.addEventListener('click', () => {
+                settingsModal.classList.remove('show');
+                const botSection = document.querySelector('.bot-settings');
+                if (botSection) {
+                    setTimeout(() => {
+                        botSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300);
+                }
+            });
+        }
     }
 
     renderBoard() {
         const boardElement = document.getElementById('chessboard');
         boardElement.innerHTML = '';
         
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
+        // Don't apply visual flip - pieces are already swapped in the board array
+        boardElement.style.transform = 'rotate(0deg)';
+        boardElement.classList.remove('flipped');
+        
+        for (let displayRow = 0; displayRow < 8; displayRow++) {
+            for (let displayCol = 0; displayCol < 8; displayCol++) {
+                // Use actual board coordinates directly (pieces are already swapped)
+                const actualRow = displayRow;
+                const actualCol = displayCol;
+                
                 const square = document.createElement('div');
-                square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
-                square.dataset.row = row;
-                square.dataset.col = col;
+                square.className = `square ${(displayRow + displayCol) % 2 === 0 ? 'light' : 'dark'}`;
+                square.dataset.row = actualRow; // Store actual board coordinates
+                square.dataset.col = actualCol;
                 
                 // Add coordinates
-                if (col === 0) {
+                if (displayCol === 0) {
                     const rank = document.createElement('span');
                     rank.className = 'coordinate rank';
-                    rank.textContent = 8 - row;
+                    rank.textContent = 8 - displayRow; // 8-1 from top
                     square.appendChild(rank);
                 }
-                if (row === 7) {
+                if (displayRow === 7) {
                     const file = document.createElement('span');
                     file.className = 'coordinate file';
-                    file.textContent = String.fromCharCode(97 + col);
+                    file.textContent = String.fromCharCode(97 + displayCol); // a-h from left
                     square.appendChild(file);
                 }
                 
-                // Add piece if exists
-                const piece = this.board[row][col];
+                // Add piece if exists (use actual board coordinates)
+                const piece = this.board[actualRow][actualCol];
                 if (piece) {
                     const pieceSet = PIECE_SETS[this.pieceSet];
                     square.textContent = pieceSet[piece.color][piece.type];
@@ -1229,7 +1386,8 @@ class ChessGame {
                     square.setAttribute('data-piece-color', piece.color);
                 }
                 
-                square.addEventListener('click', () => this.handleSquareClick(row, col));
+                // Use actual coordinates for click handler
+                square.addEventListener('click', () => this.handleSquareClick(actualRow, actualCol));
                 boardElement.appendChild(square);
             }
         }
@@ -1319,6 +1477,25 @@ class ChessGame {
         document.getElementById('start-game-btn').addEventListener('click', () => this.startGame());
         document.getElementById('resign-btn').addEventListener('click', () => this.resign());
         document.getElementById('draw-btn').addEventListener('click', () => this.offerDraw());
+        
+        // Player color selector
+        const playerColorSelect = document.getElementById('player-color-select');
+        if (playerColorSelect) {
+            // Load saved preference
+            const savedColor = localStorage.getItem('playerColor');
+            if (savedColor) {
+                playerColorSelect.value = savedColor;
+            }
+            
+            playerColorSelect.addEventListener('change', (e) => {
+                const selectedColor = e.target.value;
+                localStorage.setItem('playerColor', selectedColor);
+                this.setPlayerColor(selectedColor);
+            });
+            
+            // Set initial color
+            this.setPlayerColor(playerColorSelect.value);
+        }
         const playBotBtn = document.getElementById('play-bot-btn');
         if (playBotBtn) {
             playBotBtn.addEventListener('click', () => {
@@ -1353,17 +1530,282 @@ class ChessGame {
             });
         }
         
+        // Bot name input
+        const botNameInput = document.getElementById('bot-name');
+        if (botNameInput) {
+            // Set the saved bot name
+            botNameInput.value = this.botName;
+            
+            botNameInput.addEventListener('input', (e) => {
+                const newName = e.target.value.trim() || 'ChessBot';
+                this.botName = newName;
+                localStorage.setItem('botName', this.botName);
+                // Update display immediately if bot mode is active
+                if (this.botMode && this.currentPlayer === this.botColor) {
+                    this.updateGameInfo();
+                }
+            });
+            
+            botNameInput.addEventListener('blur', (e) => {
+                // Ensure name is not empty
+                if (!e.target.value.trim()) {
+                    e.target.value = 'ChessBot';
+                    this.botName = 'ChessBot';
+                    localStorage.setItem('botName', this.botName);
+                }
+            });
+        }
+        
+        // Bot difficulty selector
+        const botDifficultySelect = document.getElementById('bot-difficulty');
+        if (botDifficultySelect) {
+            // Set the saved difficulty
+            botDifficultySelect.value = this.botDifficulty;
+            
+            botDifficultySelect.addEventListener('change', (e) => {
+                this.botDifficulty = e.target.value;
+                localStorage.setItem('botDifficulty', this.botDifficulty);
+                const difficultyNames = {
+                    'easy': 'Easy',
+                    'medium': 'Medium',
+                    'hard': 'Hard',
+                    'expert': 'Expert'
+                };
+                const statusEl = document.getElementById('game-status');
+                if (statusEl) {
+                    statusEl.textContent = `${this.botName} difficulty set to ${difficultyNames[this.botDifficulty]}`;
+                    setTimeout(() => {
+                        if (statusEl.textContent.includes('difficulty set to')) {
+                            statusEl.textContent = '';
+                        }
+                    }, 2000);
+                }
+            });
+        }
+        
+        // Player name inputs - update profiles when names change
+        const whiteNameInput = document.getElementById('white-player-name');
+        const blackNameInput = document.getElementById('black-player-name');
+        
+        if (whiteNameInput) {
+            whiteNameInput.addEventListener('input', () => {
+                this.updatePlayerProfiles();
+            });
+        }
+        
+        if (blackNameInput) {
+            blackNameInput.addEventListener('input', () => {
+                this.updatePlayerProfiles();
+            });
+        }
+        
+        // Profile picture uploads
+        this.setupProfilePictureUploads();
+        
+        // White profile button
+        const whiteProfileButton = document.getElementById('white-profile-button');
+        if (whiteProfileButton) {
+            whiteProfileButton.addEventListener('click', () => {
+                this.showPlayerProfile('white');
+            });
+        }
+        
         this.setupColorCustomization();
     }
     
-    startGame() {
+    setupProfilePictureUploads() {
+        // White player profile picture
+        const whitePicInput = document.getElementById('white-player-pic');
+        const whitePicPreview = document.getElementById('white-player-pic-preview');
+        
+        if (whitePicInput && whitePicPreview) {
+            // Load saved image
+            const savedWhitePic = localStorage.getItem('whitePlayerProfilePic');
+            if (savedWhitePic) {
+                const img = document.createElement('img');
+                img.src = savedWhitePic;
+                whitePicPreview.appendChild(img);
+                whitePicPreview.classList.add('has-image');
+            }
+            
+            whitePicInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const imageData = event.target.result;
+                        localStorage.setItem('whitePlayerProfilePic', imageData);
+                        
+                        // Update preview
+                        whitePicPreview.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = imageData;
+                        whitePicPreview.appendChild(img);
+                        whitePicPreview.classList.add('has-image');
+                        
+                        // Update profile display
+                        this.updatePlayerProfiles();
+                        
+                        // Update timer profile picture
+                        this.updateTimerProfilePics();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Black player profile picture
+        const blackPicInput = document.getElementById('black-player-pic');
+        const blackPicPreview = document.getElementById('black-player-pic-preview');
+        
+        if (blackPicInput && blackPicPreview) {
+            // Load saved image
+            const savedBlackPic = localStorage.getItem('blackPlayerProfilePic');
+            if (savedBlackPic) {
+                const img = document.createElement('img');
+                img.src = savedBlackPic;
+                blackPicPreview.appendChild(img);
+                blackPicPreview.classList.add('has-image');
+            }
+            
+            blackPicInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const imageData = event.target.result;
+                        localStorage.setItem('blackPlayerProfilePic', imageData);
+                        
+                        // Update preview
+                        blackPicPreview.innerHTML = '';
+                        const img = document.createElement('img');
+                        img.src = imageData;
+                        blackPicPreview.appendChild(img);
+                        blackPicPreview.classList.add('has-image');
+                        
+                        // Update profile display
+                        this.updatePlayerProfiles();
+                        
+                        // Update timer profile picture
+                        this.updateTimerProfilePics();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+    
+    setPlayerColor(color) {
+        // Only allow color change if game hasn't started
+        if (this.gameStarted) {
+            const statusEl = document.getElementById('game-status');
+            if (statusEl) {
+                statusEl.textContent = 'Cannot change color after game has started';
+                statusEl.style.color = '#ff6b6b';
+                setTimeout(() => {
+                    if (statusEl.textContent.includes('Cannot change color')) {
+                        statusEl.textContent = '';
+                        statusEl.style.color = '';
+                    }
+                }, 3000);
+            }
+            // Reset selector to current color
+            const playerColorSelect = document.getElementById('player-color-select');
+            if (playerColorSelect) {
+                const savedColor = localStorage.getItem('playerColor') || 'white';
+                playerColorSelect.value = savedColor;
+            }
+            return;
+        }
+        
+        // Update current player color
+        this.currentPlayer = color;
+        
+        // Swap pieces when playing as black (so black pieces are at bottom)
+        if (color === 'black' && !this.boardFlipped) {
+            // First time switching to black - swap the pieces
+            this.swapBoardPieces();
+            this.boardFlipped = true;
+        } else if (color === 'white' && this.boardFlipped) {
+            // Switching back to white - swap the pieces back
+            this.swapBoardPieces();
+            this.boardFlipped = false;
+        }
+        
+        // Re-render board with new orientation
+        this.renderBoard();
+        
+        // Update UI to reflect the change
+        this.updateGameInfo();
+        this.updatePlayerProfiles();
+        
+        // Show feedback
+        const statusEl = document.getElementById('game-status');
+        if (statusEl) {
+            statusEl.textContent = `Playing as ${color === 'white' ? 'White' : 'Black'}`;
+            statusEl.style.color = '#667eea';
+            setTimeout(() => {
+                if (statusEl.textContent.includes('Playing as')) {
+                    statusEl.textContent = '';
+                    statusEl.style.color = '';
+                }
+            }, 2000);
+        }
+    }
+    
+    showPlayerProfile(color) {
+        // Get player name based on color
+        let playerName = color === 'white' ? 'White' : 'Black';
+        
+        if (this.botMode && ((color === 'white' && this.botColor === 'white') || (color === 'black' && this.botColor === 'black'))) {
+            playerName = this.botName;
+        } else if (this.multiplayer && this.multiplayer.roomCode) {
+            // Get player names from multiplayer manager
+            if (color === 'white') {
+                playerName = this.multiplayer.isHost ? this.multiplayer.myName : this.multiplayer.opponentName;
+            } else {
+                playerName = this.multiplayer.isHost ? this.multiplayer.opponentName : this.multiplayer.myName;
+            }
+            playerName = playerName || (color === 'white' ? 'White' : 'Black');
+        } else {
+            const nameInput = document.getElementById(`${color}-player-name`);
+            if (nameInput && nameInput.value.trim()) {
+                playerName = nameInput.value.trim();
+            }
+        }
+        
+        // Show profile info (you can expand this to show a modal with more details)
+        const statusEl = document.getElementById('game-status');
+        if (statusEl) {
+            const role = color === 'white' ? 'White Player' : 'Black Player';
+            statusEl.textContent = `${playerName} - ${role}`;
+            statusEl.style.color = '#667eea';
+            setTimeout(() => {
+                if (statusEl.textContent.includes(' - ')) {
+                    statusEl.textContent = '';
+                    statusEl.style.color = '';
+                }
+            }, 3000);
+        }
+    }
+    
+    async startGame() {
         if (!this.gameStarted && !this.gameOver) {
-            // Apply timer settings before starting
+            // In multiplayer mode, use the multiplayer ready system
+            if (this.multiplayer && this.multiplayer.roomCode) {
+                // Let multiplayer manager handle the ready logic
+                this.multiplayer.markReady();
+                return; // Multiplayer manager will call startGame when both ready
+            }
+            
+            // Single player mode - start immediately
             this.applyTimerSettings();
             
             this.gameStarted = true;
             const startBtn = document.getElementById('start-game-btn');
-            startBtn.style.display = 'none';
+            if (startBtn) {
+                startBtn.style.display = 'none';
+            }
             
             // Disable timer inputs once game starts
             const whiteTimerInput = document.getElementById('white-timer-minutes');
@@ -1375,12 +1817,7 @@ class ChessGame {
             
             this.startTimer('white');
             
-            // Sync game started state in multiplayer
-            if (this.multiplayer) {
-                this.multiplayer.saveGameState();
-            }
-            
-            document.getElementById('game-status').textContent = 'Game started!';
+            document.getElementById('game-status').textContent = 'Game started! White moves first.';
             setTimeout(() => {
                 document.getElementById('game-status').textContent = '';
             }, 2000);
@@ -1940,27 +2377,29 @@ class ChessGame {
     }
 
     handleSquareClick(row, col) {
-        if (!this.gameStarted) {
-            return; // Don't allow moves until game is started
-        }
+        console.log('=== CLICK DEBUG ===');
+        console.log('Clicked:', row, col);
+        console.log('gameStarted:', this.gameStarted);
+        console.log('gameOver:', this.gameOver);
+        console.log('currentPlayer:', this.currentPlayer);
+        console.log('boardFlipped:', this.boardFlipped);
+        
+        const piece = this.board[row][col];
+        console.log('Piece at position:', piece);
+        
+        // Basic checks
         if (this.gameOver) {
+            console.log('BLOCKED: Game over');
             this.stopTimer();
-            return; // Game is over, no more moves allowed
+            return;
         }
         
         // Don't allow clicks when it's the bot's turn
         if (this.botMode && this.currentPlayer === this.botColor) {
+            console.log('BLOCKED: Bot turn');
             return;
         }
         
-        // In multiplayer mode, only allow moves on your turn
-        if (this.multiplayer && this.multiplayer.roomCode) {
-            if (this.currentPlayer !== this.multiplayer.playerColor) {
-                return; // Not your turn
-            }
-        }
-        
-        const piece = this.board[row][col];
         const squareKey = `${row}-${col}`;
         
         // If clicking on selected square, deselect
@@ -1970,33 +2409,49 @@ class ChessGame {
             return;
         }
         
-        // If clicking on own piece, select it
+        // Select piece if it belongs to the current player's turn
         if (piece && piece.color === this.currentPlayer) {
+            console.log('SUCCESS: Selecting piece', piece.type, piece.color);
             this.selectedSquare = squareKey;
             this.updateSquareStates();
             return;
+        } else if (piece) {
+            console.log('BLOCKED: Piece color', piece.color, 'does not match currentPlayer', this.currentPlayer);
+        } else {
+            console.log('No piece at this position');
         }
         
         // If a piece is selected, try to move
         if (this.selectedSquare) {
+            console.log('Piece selected, attempting move');
             const [selectedRow, selectedCol] = this.selectedSquare.split('-').map(Number);
             if (this.isValidMove(selectedRow, selectedCol, row, col)) {
+                console.log('Valid move, making move');
                 this.makeMove(selectedRow, selectedCol, row, col);
                 this.selectedSquare = null;
                 this.updateSquareStates();
             } else {
-                // Invalid move, select new piece if clicking on own piece
+                // Invalid move, select new piece if clicking on current player's piece
                 if (piece && piece.color === this.currentPlayer) {
                     this.selectedSquare = squareKey;
                     this.updateSquareStates();
                 }
             }
+        } else {
+            console.log('No piece selected, and not clicking on own piece');
         }
     }
 
     isValidMove(fromRow, fromCol, toRow, toCol) {
+        console.log('=== MOVE VALIDATION ===');
+        console.log('From:', fromRow, fromCol, 'To:', toRow, toCol);
         const piece = this.board[fromRow][fromCol];
+        console.log('Piece:', piece);
+        console.log('currentPlayer:', this.currentPlayer);
+        console.log('boardFlipped:', this.boardFlipped);
+        
         if (!piece || piece.color !== this.currentPlayer) {
+            console.log('INVALID: No piece or wrong color');
             return false;
         }
         
@@ -2064,8 +2519,19 @@ class ChessGame {
     }
 
     isValidPawnMove(piece, fromRow, fromCol, toRow, toCol) {
-        const direction = piece.color === 'white' ? -1 : 1;
-        const startRow = piece.color === 'white' ? 6 : 1;
+        // When board is flipped, directions are reversed
+        let direction, startRow;
+        
+        if (this.boardFlipped) {
+            // Board is flipped (black's perspective): white moves down, black moves up
+            direction = piece.color === 'white' ? 1 : -1;
+            startRow = piece.color === 'white' ? 1 : 6;
+        } else {
+            // Normal orientation: white moves up, black moves down
+            direction = piece.color === 'white' ? -1 : 1;
+            startRow = piece.color === 'white' ? 6 : 1;
+        }
+        
         const rowDiff = toRow - fromRow;
         const colDiff = toCol - fromCol;
         const targetPiece = this.board[toRow][toCol];
@@ -2090,7 +2556,13 @@ class ChessGame {
                 this.enPassantTarget.row === toRow && 
                 this.enPassantTarget.col === toCol) {
                 // Check if there's an enemy pawn in the adjacent square
-                const enemyPawnRow = piece.color === 'white' ? toRow + 1 : toRow - 1;
+                // Direction reversed when board is flipped
+                let enemyPawnRow;
+                if (this.boardFlipped) {
+                    enemyPawnRow = piece.color === 'white' ? toRow - 1 : toRow + 1;
+                } else {
+                    enemyPawnRow = piece.color === 'white' ? toRow + 1 : toRow - 1;
+                }
                 const enemyPawn = this.board[enemyPawnRow][toCol];
                 if (enemyPawn && enemyPawn.type === 'pawn' && enemyPawn.color !== piece.color) {
                     return true;
@@ -2153,12 +2625,27 @@ class ChessGame {
             // Castling is complete, update rights and continue
             this.updateCastlingRights(piece, fromRow, fromCol);
             this.enPassantTarget = null; // Clear en passant target
+            
+            // Record move
+            const moveNotation = this.getMoveNotation(piece, fromRow, fromCol, toRow, toCol, null);
+            this.moveHistory.push({
+                move: moveNotation,
+                player: this.currentPlayer
+            });
+            this.updateMoveHistory();
+            
+            // Switch turn BEFORE saving game state
             this.switchTurn();
             
             // Check for check/checkmate
             this.checkGameState();
             this.updateGameInfo();
             this.renderBoard();
+            
+            // Notify multiplayer manager of the move AFTER turn switch
+            if (this.multiplayer) {
+                this.multiplayer.onMoveMade(fromRow, fromCol, toRow, toCol);
+            }
             
             // If bot mode is active and it's the bot's turn, make bot move
             if (this.botMode && !this.gameOver && this.currentPlayer === this.botColor) {
@@ -2180,7 +2667,13 @@ class ChessGame {
             this.enPassantTarget.col === toCol) {
             enPassantCapture = true;
             // Capture the pawn that moved two squares
-            const enemyPawnRow = piece.color === 'white' ? toRow + 1 : toRow - 1;
+            // Direction reversed when board is flipped
+            let enemyPawnRow;
+            if (this.boardFlipped) {
+                enemyPawnRow = piece.color === 'white' ? toRow - 1 : toRow + 1;
+            } else {
+                enemyPawnRow = piece.color === 'white' ? toRow + 1 : toRow - 1;
+            }
             capturedPiece = this.board[enemyPawnRow][toCol];
             this.board[enemyPawnRow][toCol] = null;
             this.capturedPieces[capturedPiece.color].push(capturedPiece);
@@ -2225,17 +2718,19 @@ class ChessGame {
         });
         this.updateMoveHistory();
         
-        // Notify multiplayer manager of the move
-        if (this.multiplayer) {
-            this.multiplayer.onMoveMade(fromRow, fromCol, toRow, toCol);
-        }
-        
+        // Switch turn BEFORE saving game state (so currentPlayer is correct)
         this.switchTurn();
         
         // Check for check/checkmate (this will set gameOver if checkmate occurs)
         this.checkGameState();
         this.updateGameInfo();
         this.renderBoard();
+        
+        // Notify multiplayer manager of the move AFTER turn switch
+        // This ensures the saved game state has the correct currentPlayer
+        if (this.multiplayer) {
+            this.multiplayer.onMoveMade(fromRow, fromCol, toRow, toCol);
+        }
         
         // If bot mode is active and it's the bot's turn, make bot move
         if (this.botMode && !this.gameOver && this.currentPlayer === this.botColor) {
@@ -2411,11 +2906,11 @@ class ChessGame {
         // Determine the winner (opponent of the current player)
         const winner = this.currentPlayer === 'white' ? 'Black' : 'White';
         
-        // Handle bot mode - if bot is the winner, show "Bot"
+        // Handle bot mode - if bot is the winner, show bot name
         let winnerName = winner;
         if (this.botMode) {
             if (winner === (this.botColor === 'white' ? 'White' : 'Black')) {
-                winnerName = 'Bot';
+                winnerName = this.botName;
             }
         }
         
@@ -2450,8 +2945,16 @@ class ChessGame {
         
         // Offer a draw to the opponent
         this.drawOffer = this.currentPlayer;
-        const offeringPlayer = this.currentPlayer === 'white' ? 'White' : 'Black';
-        const opponentPlayer = this.currentPlayer === 'white' ? 'Black' : 'White';
+        // Use bot name if current player is bot
+        let offeringPlayer = this.currentPlayer === 'white' ? 'White' : 'Black';
+        let opponentPlayer = this.currentPlayer === 'white' ? 'Black' : 'White';
+        if (this.botMode && this.currentPlayer === this.botColor) {
+            offeringPlayer = this.botName;
+        }
+        if (this.botMode && this.currentPlayer !== this.botColor) {
+            // Opponent is bot, so use bot name
+            opponentPlayer = this.botName;
+        }
         
         // Update game status
         document.getElementById('game-status').textContent = `${offeringPlayer} offers a draw. ${opponentPlayer} can accept by clicking Draw.`;
@@ -2527,7 +3030,7 @@ class ChessGame {
             this.gameOver = true;
             this.stopTimer();
             const winner = this.currentPlayer === 'white' ? 'Black' : 'White';
-            const winnerName = this.botMode && winner === (this.botColor === 'white' ? 'White' : 'Black') ? 'Bot' : winner;
+            const winnerName = this.botMode && winner === (this.botColor === 'white' ? 'White' : 'Black') ? this.botName : winner;
             document.getElementById('game-status').textContent = `Checkmate! ${winnerName} wins!`;
             document.getElementById('game-status').style.color = '#4CAF50';
             document.getElementById('game-status').style.fontWeight = 'bold';
@@ -2651,24 +3154,300 @@ class ChessGame {
         if (!this.gameOver) {
             let playerName;
             if (this.botMode && this.currentPlayer === this.botColor) {
-                playerName = 'Bot';
+                playerName = this.botName;
             } else if (this.multiplayer && this.multiplayer.roomCode) {
                 // In multiplayer, show actual player names
-                const roomData = this.multiplayer.getRoomData(this.multiplayer.roomCode);
-                if (roomData) {
-                    if (this.currentPlayer === 'white') {
-                        playerName = roomData.host || 'White';
-                    } else {
-                        playerName = roomData.guest || 'Black';
-                    }
+                if (this.currentPlayer === 'white') {
+                    playerName = this.multiplayer.isHost ? this.multiplayer.myName : this.multiplayer.opponentName;
                 } else {
-                    playerName = this.currentPlayer === 'white' ? 'White' : 'Black';
+                    playerName = this.multiplayer.isHost ? this.multiplayer.opponentName : this.multiplayer.myName;
                 }
+                playerName = playerName || (this.currentPlayer === 'white' ? 'White' : 'Black');
             } else {
                 playerName = this.currentPlayer === 'white' ? 'White' : 'Black';
             }
             document.getElementById('current-turn').textContent = `${playerName}'s Turn`;
         }
+        // Update player profiles whenever game info is updated
+        this.updatePlayerProfiles();
+    }
+    
+    updatePlayerProfiles() {
+        // Get white player name
+        let whitePlayerName = 'White';
+        let whitePlayerStatus = '';
+        
+        if (this.botMode && this.botColor === 'white') {
+            whitePlayerName = this.botName;
+            if (this.currentPlayer === 'white' && !this.gameOver) {
+                whitePlayerStatus = 'thinking';
+            }
+        } else if (this.multiplayer && this.multiplayer.roomCode) {
+            whitePlayerName = this.multiplayer.isHost ? this.multiplayer.myName : this.multiplayer.opponentName;
+            whitePlayerName = whitePlayerName || 'White';
+            whitePlayerStatus = 'online';
+        } else {
+            // Get from input field if available
+            const whiteNameInput = document.getElementById('white-player-name');
+            if (whiteNameInput && whiteNameInput.value.trim()) {
+                whitePlayerName = whiteNameInput.value.trim();
+            }
+        }
+        
+        // Get black player name
+        let blackPlayerName = 'Black';
+        let blackPlayerStatus = '';
+        
+        if (this.botMode && this.botColor === 'black') {
+            blackPlayerName = this.botName;
+            if (this.currentPlayer === 'black' && !this.gameOver) {
+                blackPlayerStatus = 'thinking';
+            }
+        } else if (this.multiplayer && this.multiplayer.roomCode) {
+            blackPlayerName = this.multiplayer.isHost ? this.multiplayer.opponentName : this.multiplayer.myName;
+            blackPlayerName = blackPlayerName || 'Black';
+            blackPlayerStatus = 'online';
+        } else {
+            // Get from input field if available
+            const blackNameInput = document.getElementById('black-player-name');
+            if (blackNameInput && blackNameInput.value.trim()) {
+                blackPlayerName = blackNameInput.value.trim();
+            }
+        }
+        
+        // Update white player profile
+        const whiteProfileName = document.getElementById('white-player-profile');
+        const whiteProfileStatus = document.getElementById('white-player-status');
+        const whiteProfileCard = document.querySelector('.white-profile');
+        const whiteProfileAvatar = whiteProfileCard?.querySelector('.profile-avatar');
+        
+        if (whiteProfileName) {
+            whiteProfileName.textContent = whitePlayerName;
+        }
+        
+        // Update white player avatar with profile picture
+        if (whiteProfileAvatar) {
+            const savedWhitePic = localStorage.getItem('whitePlayerProfilePic');
+            if (savedWhitePic) {
+                const existingImg = whiteProfileAvatar.querySelector('img');
+                if (existingImg) {
+                    existingImg.src = savedWhitePic;
+                } else {
+                    const icon = whiteProfileAvatar.querySelector('.avatar-icon');
+                    if (icon) {
+                        const img = document.createElement('img');
+                        img.src = savedWhitePic;
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '50%';
+                        icon.replaceWith(img);
+                    }
+                }
+            } else {
+                // Use default icon if no picture
+                if (!whiteProfileAvatar.querySelector('.avatar-icon') && !whiteProfileAvatar.querySelector('img')) {
+                    const icon = document.createElement('span');
+                    icon.className = 'avatar-icon';
+                    icon.textContent = '♔';
+                    whiteProfileAvatar.appendChild(icon);
+                }
+            }
+        }
+        
+        if (whiteProfileStatus) {
+            whiteProfileStatus.textContent = '';
+            whiteProfileStatus.className = 'profile-status';
+            
+            if (whitePlayerStatus === 'thinking') {
+                whiteProfileStatus.textContent = 'Thinking...';
+                whiteProfileStatus.classList.add('thinking');
+            } else if (whitePlayerStatus === 'online') {
+                whiteProfileStatus.textContent = 'Online';
+                whiteProfileStatus.classList.add('online');
+            } else if (this.currentPlayer === 'white' && !this.gameOver) {
+                whiteProfileStatus.textContent = 'Your Turn';
+                whiteProfileStatus.classList.add('online');
+            } else if (this.gameOver) {
+                whiteProfileStatus.textContent = 'Game Over';
+            } else {
+                whiteProfileStatus.textContent = 'Waiting';
+                whiteProfileStatus.classList.add('waiting');
+            }
+        }
+        
+        if (whiteProfileCard) {
+            if (this.currentPlayer === 'white' && !this.gameOver) {
+                whiteProfileCard.classList.add('active');
+            } else {
+                whiteProfileCard.classList.remove('active');
+            }
+        }
+        
+        // Update black player profile
+        const blackProfileName = document.getElementById('black-player-profile');
+        const blackProfileStatus = document.getElementById('black-player-status');
+        const blackProfileCard = document.querySelector('.black-profile');
+        const blackProfileAvatar = blackProfileCard?.querySelector('.profile-avatar');
+        
+        if (blackProfileName) {
+            blackProfileName.textContent = blackPlayerName;
+        }
+        
+        // Update black player avatar with profile picture
+        if (blackProfileAvatar) {
+            const savedBlackPic = localStorage.getItem('blackPlayerProfilePic');
+            if (savedBlackPic) {
+                const existingImg = blackProfileAvatar.querySelector('img');
+                if (existingImg) {
+                    existingImg.src = savedBlackPic;
+                } else {
+                    const img = document.createElement('img');
+                    img.src = savedBlackPic;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '50%';
+                    blackProfileAvatar.innerHTML = '';
+                    blackProfileAvatar.appendChild(img);
+                }
+            } else {
+                // Use default icon if no picture
+                if (!blackProfileAvatar.querySelector('.avatar-icon')) {
+                    const icon = document.createElement('span');
+                    icon.className = 'avatar-icon';
+                    icon.textContent = '♚';
+                    blackProfileAvatar.innerHTML = '';
+                    blackProfileAvatar.appendChild(icon);
+                }
+            }
+        }
+        
+        if (blackProfileStatus) {
+            blackProfileStatus.textContent = '';
+            blackProfileStatus.className = 'profile-status';
+            
+            if (blackPlayerStatus === 'thinking') {
+                blackProfileStatus.textContent = 'Thinking...';
+                blackProfileStatus.classList.add('thinking');
+            } else if (blackPlayerStatus === 'online') {
+                blackProfileStatus.textContent = 'Online';
+                blackProfileStatus.classList.add('online');
+            } else if (this.currentPlayer === 'black' && !this.gameOver) {
+                blackProfileStatus.textContent = 'Your Turn';
+                blackProfileStatus.classList.add('online');
+            } else if (this.gameOver) {
+                blackProfileStatus.textContent = 'Game Over';
+            } else {
+                blackProfileStatus.textContent = 'Waiting';
+                blackProfileStatus.classList.add('waiting');
+            }
+        }
+        
+        if (blackProfileCard) {
+            if (this.currentPlayer === 'black' && !this.gameOver) {
+                blackProfileCard.classList.add('active');
+            } else {
+                blackProfileCard.classList.remove('active');
+            }
+        }
+    }
+    
+    updateTimerProfilePics() {
+        // Update white timer profile picture
+        const whiteTimerProfilePic = document.getElementById('white-timer-profile-pic');
+        if (whiteTimerProfilePic) {
+            const savedWhitePic = localStorage.getItem('whitePlayerProfilePic');
+            if (savedWhitePic) {
+                const existingImg = whiteTimerProfilePic.querySelector('img');
+                if (existingImg) {
+                    existingImg.src = savedWhitePic;
+                } else {
+                    // Remove icon if exists and add image
+                    whiteTimerProfilePic.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = savedWhitePic;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '50%';
+                    whiteTimerProfilePic.appendChild(img);
+                }
+            } else {
+                // Use default icon if no picture
+                if (!whiteTimerProfilePic.querySelector('.timer-profile-icon') && !whiteTimerProfilePic.querySelector('img')) {
+                    whiteTimerProfilePic.innerHTML = '';
+                    const icon = document.createElement('span');
+                    icon.className = 'timer-profile-icon';
+                    icon.textContent = '♔';
+                    whiteTimerProfilePic.appendChild(icon);
+                }
+            }
+        }
+        
+        // Update black timer profile picture
+        const blackTimerProfilePic = document.getElementById('black-timer-profile-pic');
+        if (blackTimerProfilePic) {
+            const savedBlackPic = localStorage.getItem('blackPlayerProfilePic');
+            if (savedBlackPic) {
+                const existingImg = blackTimerProfilePic.querySelector('img');
+                if (existingImg) {
+                    existingImg.src = savedBlackPic;
+                } else {
+                    // Remove icon if exists and add image
+                    blackTimerProfilePic.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = savedBlackPic;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    img.style.borderRadius = '50%';
+                    blackTimerProfilePic.appendChild(img);
+                }
+            } else {
+                // Use default icon if no picture
+                if (!blackTimerProfilePic.querySelector('.timer-profile-icon') && !blackTimerProfilePic.querySelector('img')) {
+                    blackTimerProfilePic.innerHTML = '';
+                    const icon = document.createElement('span');
+                    icon.className = 'timer-profile-icon';
+                    icon.textContent = '♚';
+                    blackTimerProfilePic.appendChild(icon);
+                }
+            }
+        }
+    }
+    
+    getBotDepth() {
+        // Map difficulty to minimax depth
+        const depthMap = {
+            'easy': 1,      // Very fast, makes decent moves
+            'medium': 2,    // Fast, makes good moves (default)
+            'hard': 3,      // Slower, makes strong moves
+            'expert': 4     // Slowest, makes very strong moves
+        };
+        return depthMap[this.botDifficulty] || 2;
+    }
+    
+    getMaxTimeForDifficulty() {
+        // Map difficulty to max calculation time (ms)
+        const timeMap = {
+            'easy': 400,    // 400ms for quick play
+            'medium': 800,  // 800ms for balanced play
+            'hard': 1500,   // 1.5s for stronger moves
+            'expert': 3000  // 3s for expert level
+        };
+        return timeMap[this.botDifficulty] || 800;
+    }
+    
+    getMovesToSearchCount() {
+        // Map difficulty to number of moves to evaluate
+        const movesMap = {
+            'easy': 8,      // Check fewer moves for speed
+            'medium': 12,   // Balanced
+            'hard': 20,     // Check more moves
+            'expert': 30    // Check many moves for best play
+        };
+        return movesMap[this.botDifficulty] || 12;
     }
     
     toggleBotMode() {
@@ -2684,7 +3463,13 @@ class ChessGame {
         if (this.botMode) {
             botBtn.textContent = 'Stop Bot';
             botBtn.classList.add('active');
-            document.getElementById('game-status').textContent = 'Bot mode enabled! Bot plays as Black.';
+            const difficultyNames = {
+                'easy': 'Easy',
+                'medium': 'Medium',
+                'hard': 'Hard',
+                'expert': 'Expert'
+            };
+            document.getElementById('game-status').textContent = `Bot mode enabled! ${this.botName} plays as Black (${difficultyNames[this.botDifficulty]} level).`;
             setTimeout(() => {
                 document.getElementById('game-status').textContent = '';
             }, 3000);
@@ -2711,6 +3496,8 @@ class ChessGame {
                 document.getElementById('game-status').textContent = '';
             }, 2000);
         }
+        // Update player profiles when bot mode is toggled
+        this.updatePlayerProfiles();
     }
     
     getAllValidMoves(color) {
@@ -3162,13 +3949,16 @@ class ChessGame {
             return;
         }
         
+        // Get depth based on difficulty level
+        const depth = this.getBotDepth();
+        const maxTime = this.getMaxTimeForDifficulty();
+        
         // Use minimax with alpha-beta pruning - optimized for speed
-        console.log('Bot using fast minimax search (depth 2) from', validMoves.length, 'valid moves...');
+        console.log(`Bot using minimax search (depth ${depth}, difficulty: ${this.botDifficulty}) from`, validMoves.length, 'valid moves...');
         
         let bestMove = null;
         let bestValue = -Infinity;
         const startTime = Date.now();
-        const maxTime = 800; // Max 800ms for move calculation
         
         try {
             // Quick pre-scoring to order moves (captures first, then center moves)
@@ -3184,11 +3974,12 @@ class ChessGame {
                 return { move, quickScore };
             });
             
-            // Sort by quick score and limit to top 12 moves for speed
+            // Sort by quick score - adjust number of moves based on difficulty
             quickScored.sort((a, b) => b.quickScore - a.quickScore);
-            const movesToSearch = quickScored.slice(0, Math.min(12, quickScored.length));
+            const movesToSearchCount = this.getMovesToSearchCount();
+            const movesToSearch = quickScored.slice(0, Math.min(movesToSearchCount, quickScored.length));
             
-            // Use minimax with depth 2 for faster play (still strong)
+            // Use minimax with depth based on difficulty
             for (const { move } of movesToSearch) {
                 // Check time limit
                 if (Date.now() - startTime > maxTime) {
@@ -3198,7 +3989,7 @@ class ChessGame {
                 
                 try {
                     const testBoard = this.makeMoveOnBoard(this.board, move);
-                    const moveValue = this.minimax(testBoard, 2, -Infinity, Infinity, false, this.botColor);
+                    const moveValue = this.minimax(testBoard, depth, -Infinity, Infinity, false, this.botColor);
                     
                     if (moveValue > bestValue) {
                         bestValue = moveValue;
@@ -3434,7 +4225,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check authentication first
     if (typeof auth !== 'undefined' && auth) {
         if (auth.checkAuth()) {
-            new ChessGame();
+            // Create game and expose globally for multiplayer
+            window.chessGame = new ChessGame();
         }
     } else {
         // If auth.js hasn't loaded, redirect to login
