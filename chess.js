@@ -2801,7 +2801,8 @@ class ChessGame {
         }
         
         // Determine which side (king-side or queen-side)
-        const isKingSide = toCol > fromCol;
+        // When board is flipped, the direction is reversed
+        const isKingSide = this.boardFlipped ? (toCol < fromCol) : (toCol > fromCol);
         const color = piece.color;
         
         // Check castling rights
@@ -2812,8 +2813,10 @@ class ChessGame {
             return false;
         }
         
-        // Find the rook
-        const rookCol = isKingSide ? 7 : 0;
+        // Find the rook - positions are different when board is flipped
+        const rookCol = this.boardFlipped 
+            ? (isKingSide ? 0 : 7)  // Flipped: kingside at 0, queenside at 7
+            : (isKingSide ? 7 : 0); // Normal: kingside at 7, queenside at 0
         const rook = this.board[fromRow][rookCol];
         if (!rook || rook.type !== 'rook' || rook.color !== color) {
             return false;
@@ -2829,7 +2832,9 @@ class ChessGame {
         }
         
         // Check if king doesn't pass through check
-        const kingStep = isKingSide ? 1 : -1;
+        const kingStep = this.boardFlipped 
+            ? (isKingSide ? -1 : 1)  // Flipped: kingside moves left
+            : (isKingSide ? 1 : -1); // Normal: kingside moves right
         for (let col = fromCol; col !== toCol + kingStep; col += kingStep) {
             const testBoard = this.cloneBoard();
             testBoard[fromRow][col] = piece;
@@ -2844,9 +2849,16 @@ class ChessGame {
     
     executeCastling(fromRow, fromCol, toRow, toCol) {
         const piece = this.board[fromRow][fromCol];
-        const isKingSide = toCol > fromCol;
-        const rookCol = isKingSide ? 7 : 0;
-        const newRookCol = isKingSide ? 5 : 3;
+        // Determine kingside based on board orientation
+        const isKingSide = this.boardFlipped ? (toCol < fromCol) : (toCol > fromCol);
+        
+        // Rook positions depend on board orientation
+        const rookCol = this.boardFlipped 
+            ? (isKingSide ? 0 : 7)  // Flipped: kingside rook at 0, queenside at 7
+            : (isKingSide ? 7 : 0); // Normal: kingside rook at 7, queenside at 0
+        const newRookCol = this.boardFlipped
+            ? (isKingSide ? 2 : 4)  // Flipped: new positions are mirrored
+            : (isKingSide ? 5 : 3); // Normal: kingside rook to 5, queenside to 3
         
         // Move king
         this.board[toRow][toCol] = piece;
@@ -2885,20 +2897,35 @@ class ChessGame {
         }
         
         // If rook moves, lose castling rights on that side
+        // Account for board flip - positions are mirrored
         if (piece.type === 'rook') {
-            if (fromRow === (color === 'white' ? 7 : 0)) {
-                if (fromCol === 0) {
-                    this.castlingRights[color].queenSide = false;
-                } else if (fromCol === 7) {
-                    this.castlingRights[color].kingSide = false;
+            // Determine home row based on color and board flip
+            let homeRow;
+            if (this.boardFlipped) {
+                homeRow = (color === 'white') ? 0 : 7;
+            } else {
+                homeRow = (color === 'white') ? 7 : 0;
+            }
+            
+            if (fromRow === homeRow) {
+                // Determine which rook based on column and board flip
+                if (this.boardFlipped) {
+                    // When flipped: kingside rook at col 0, queenside at col 7
+                    if (fromCol === 0) {
+                        this.castlingRights[color].kingSide = false;
+                    } else if (fromCol === 7) {
+                        this.castlingRights[color].queenSide = false;
+                    }
+                } else {
+                    // Normal: queenside rook at col 0, kingside at col 7
+                    if (fromCol === 0) {
+                        this.castlingRights[color].queenSide = false;
+                    } else if (fromCol === 7) {
+                        this.castlingRights[color].kingSide = false;
+                    }
                 }
             }
         }
-        
-        // If a rook is captured, lose castling rights on that side
-        // (This is handled when the rook is captured, but we check the destination)
-        // Actually, we need to check if a rook was captured in the previous move
-        // For now, we'll handle this in the capture logic if needed
     }
 
     getMoveNotation(piece, fromRow, fromCol, toRow, toCol, captured) {
