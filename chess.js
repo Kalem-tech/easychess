@@ -1730,10 +1730,8 @@ class ChessGame {
             return;
         }
         
-        // Update current player color
-        this.currentPlayer = color;
-        
         // Set bot color to the OPPOSITE of player's color
+        // Note: currentPlayer stays 'white' because white ALWAYS moves first in chess
         this.botColor = (color === 'white') ? 'black' : 'white';
         
         // Swap pieces when playing as black (so black pieces are at bottom)
