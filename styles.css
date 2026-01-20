@@ -656,6 +656,112 @@ header h1 {
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
+/* Review Button */
+.board-controls .review-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    margin-top: 10px;
+}
+
+.board-controls .review-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+/* Review Controls */
+.review-controls {
+    background: linear-gradient(145deg, rgba(30, 30, 50, 0.95), rgba(50, 50, 80, 0.95));
+    border: 2px solid rgba(102, 126, 234, 0.5);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.3);
+}
+
+.review-header span {
+    font-weight: 600;
+    color: #667eea;
+    font-size: 1.1rem;
+}
+
+.review-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.review-navigation .btn-small {
+    padding: 8px 14px;
+    font-size: 1rem;
+    min-width: 40px;
+    background: rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(102, 126, 234, 0.4);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.review-navigation .btn-small:hover {
+    background: rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+}
+
+.review-navigation .btn-small:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.review-move-display {
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 500;
+    min-width: 100px;
+    text-align: center;
+}
+
+.review-move-info {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 10px;
+    color: #ccc;
+    font-size: 0.9rem;
+    text-align: center;
+    min-height: 24px;
+}
+
+#exit-review-btn {
+    padding: 6px 12px;
+    background: rgba(220, 53, 69, 0.8);
+    border: none;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+#exit-review-btn:hover {
+    background: rgba(220, 53, 69, 1);
+}
+
 .side-timers {
     position: relative;
     width: 150px;

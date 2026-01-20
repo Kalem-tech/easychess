@@ -846,6 +846,12 @@ class ChessGame {
         // Draw offer system
         this.drawOffer = null; // null, 'white', or 'black' - tracks who offered the draw
         
+        // Review mode
+        this.reviewMode = false;
+        this.reviewMoveIndex = -1;
+        this.boardHistory = []; // Stores board positions for review
+        this.savedBoardState = null; // Stores current board when entering review
+        
         // Load user preferences if available
         const userPrefs = auth ? auth.getUserPreferences() : null;
         
@@ -1021,6 +1027,12 @@ class ChessGame {
         setTimeout(() => {
             this.updateTimerProfilePics();
         }, 100);
+        
+        // Save initial board position for review mode
+        this.saveBoardPosition();
+        
+        // Setup review controls
+        this.setupReviewControls();
     }
     
     initializeTimers() {
@@ -2383,6 +2395,12 @@ class ChessGame {
         console.log('gameOver:', this.gameOver);
         console.log('currentPlayer:', this.currentPlayer);
         console.log('boardFlipped:', this.boardFlipped);
+        
+        // Don't allow moves during review mode
+        if (this.reviewMode) {
+            console.log('BLOCKED: Review mode active');
+            return;
+        }
         
         const piece = this.board[row][col];
         console.log('Piece at position:', piece);
@@ -4129,6 +4147,145 @@ class ChessGame {
         });
         
         moveList.scrollTop = moveList.scrollHeight;
+        
+        // Save board position for review
+        this.saveBoardPosition();
+        
+        // Show review button if game is over
+        this.updateReviewButtonVisibility();
+    }
+    
+    // ========== REVIEW MODE ==========
+    saveBoardPosition() {
+        // Deep copy the current board state
+        const boardCopy = this.board.map(row => 
+            row.map(piece => piece ? { ...piece } : null)
+        );
+        this.boardHistory.push(boardCopy);
+    }
+    
+    updateReviewButtonVisibility() {
+        const reviewBtn = document.getElementById('review-btn');
+        if (reviewBtn) {
+            if (this.gameOver && this.moveHistory.length > 0) {
+                reviewBtn.style.display = 'block';
+            } else {
+                reviewBtn.style.display = 'none';
+            }
+        }
+    }
+    
+    enterReviewMode() {
+        if (!this.gameOver || this.moveHistory.length === 0) return;
+        
+        this.reviewMode = true;
+        this.reviewMoveIndex = this.boardHistory.length - 1; // Start at final position
+        
+        // Save current board state
+        this.savedBoardState = this.board.map(row => 
+            row.map(piece => piece ? { ...piece } : null)
+        );
+        
+        // Show review controls, hide game controls
+        document.getElementById('review-controls').style.display = 'block';
+        document.getElementById('review-btn').style.display = 'none';
+        document.getElementById('start-game-btn').style.display = 'none';
+        document.getElementById('draw-btn').style.display = 'none';
+        document.getElementById('resign-btn').style.display = 'none';
+        
+        this.updateReviewDisplay();
+        document.getElementById('game-status').textContent = '📖 Review Mode';
+        document.getElementById('game-status').style.color = '#667eea';
+    }
+    
+    exitReviewMode() {
+        this.reviewMode = false;
+        
+        // Restore the final board state
+        if (this.savedBoardState) {
+            this.board = this.savedBoardState;
+            this.savedBoardState = null;
+        }
+        
+        // Hide review controls, show game controls
+        document.getElementById('review-controls').style.display = 'none';
+        document.getElementById('review-btn').style.display = 'block';
+        document.getElementById('start-game-btn').style.display = 'block';
+        document.getElementById('draw-btn').style.display = 'block';
+        document.getElementById('resign-btn').style.display = 'block';
+        
+        this.renderBoard();
+        this.updateGameInfo();
+    }
+    
+    reviewGoToMove(index) {
+        if (index < 0) index = 0;
+        if (index >= this.boardHistory.length) index = this.boardHistory.length - 1;
+        
+        this.reviewMoveIndex = index;
+        
+        // Set board to the saved position
+        this.board = this.boardHistory[index].map(row => 
+            row.map(piece => piece ? { ...piece } : null)
+        );
+        
+        this.renderBoard();
+        this.updateReviewDisplay();
+    }
+    
+    reviewPrevMove() {
+        if (this.reviewMoveIndex > 0) {
+            this.reviewGoToMove(this.reviewMoveIndex - 1);
+        }
+    }
+    
+    reviewNextMove() {
+        if (this.reviewMoveIndex < this.boardHistory.length - 1) {
+            this.reviewGoToMove(this.reviewMoveIndex + 1);
+        }
+    }
+    
+    reviewGoToStart() {
+        this.reviewGoToMove(0);
+    }
+    
+    reviewGoToEnd() {
+        this.reviewGoToMove(this.boardHistory.length - 1);
+    }
+    
+    updateReviewDisplay() {
+        const moveDisplay = document.getElementById('review-move-display');
+        const moveInfo = document.getElementById('review-move-info');
+        
+        // Move 0 is the initial position, so move index 1 = move 1
+        const moveNum = this.reviewMoveIndex;
+        const totalMoves = this.boardHistory.length - 1;
+        
+        moveDisplay.textContent = `Move ${moveNum}/${totalMoves}`;
+        
+        // Show the move that led to this position
+        if (moveNum > 0 && this.moveHistory[moveNum - 1]) {
+            const move = this.moveHistory[moveNum - 1];
+            const player = move.player === 'white' ? '⚪' : '⚫';
+            moveInfo.textContent = `${player} ${move.move}`;
+        } else {
+            moveInfo.textContent = 'Starting position';
+        }
+        
+        // Update button states
+        document.getElementById('review-start-btn').disabled = (this.reviewMoveIndex === 0);
+        document.getElementById('review-prev-btn').disabled = (this.reviewMoveIndex === 0);
+        document.getElementById('review-next-btn').disabled = (this.reviewMoveIndex >= this.boardHistory.length - 1);
+        document.getElementById('review-end-btn').disabled = (this.reviewMoveIndex >= this.boardHistory.length - 1);
+    }
+    
+    setupReviewControls() {
+        document.getElementById('review-btn')?.addEventListener('click', () => this.enterReviewMode());
+        document.getElementById('exit-review-btn')?.addEventListener('click', () => this.exitReviewMode());
+        document.getElementById('review-start-btn')?.addEventListener('click', () => this.reviewGoToStart());
+        document.getElementById('review-prev-btn')?.addEventListener('click', () => this.reviewPrevMove());
+        document.getElementById('review-next-btn')?.addEventListener('click', () => this.reviewNextMove());
+        document.getElementById('review-end-btn')?.addEventListener('click', () => this.reviewGoToEnd());
     }
 
     updateCapturedPieces() {
@@ -4170,6 +4327,14 @@ class ChessGame {
         this.gameOver = false;
         this.gameStarted = false; // Reset game started flag
         this.inCheck = { white: false, black: false };
+        
+        // Reset review mode
+        this.reviewMode = false;
+        this.reviewMoveIndex = -1;
+        this.boardHistory = [];
+        this.savedBoardState = null;
+        document.getElementById('review-controls').style.display = 'none';
+        document.getElementById('review-btn').style.display = 'none';
         
         // Reset castling rights
         this.castlingRights = {

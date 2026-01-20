@@ -132,6 +132,7 @@
                             <button id="start-game-btn" class="start-game-btn">Start Game</button>
                             <button id="draw-btn" class="btn btn-secondary draw-btn">Draw</button>
                             <button id="resign-btn" class="btn btn-secondary resign-btn">Resign</button>
+                            <button id="review-btn" class="btn btn-primary review-btn" style="display: none;">📖 Review Game</button>
                             <div class="color-selector">
                                 <label for="player-color-select" class="color-select-label">Play As:</label>
                                 <select id="player-color-select" class="color-select">
@@ -139,6 +140,22 @@
                                     <option value="black">Black</option>
                                 </select>
                             </div>
+                        </div>
+                        
+                        <!-- Review Controls (hidden by default) -->
+                        <div id="review-controls" class="review-controls" style="display: none;">
+                            <div class="review-header">
+                                <span>📖 Game Review</span>
+                                <button id="exit-review-btn" class="btn btn-small">✕ Exit</button>
+                            </div>
+                            <div class="review-navigation">
+                                <button id="review-start-btn" class="btn btn-small" title="Go to start">⏮</button>
+                                <button id="review-prev-btn" class="btn btn-small" title="Previous move">◀</button>
+                                <span id="review-move-display" class="review-move-display">Move 0/0</span>
+                                <button id="review-next-btn" class="btn btn-small" title="Next move">▶</button>
+                                <button id="review-end-btn" class="btn btn-small" title="Go to end">⏭</button>
+                            </div>
+                            <div id="review-move-info" class="review-move-info"></div>
                         </div>
                     </div>
                 </div>
