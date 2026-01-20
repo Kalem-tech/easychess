@@ -1733,6 +1733,9 @@ class ChessGame {
         // Update current player color
         this.currentPlayer = color;
         
+        // Set bot color to the OPPOSITE of player's color
+        this.botColor = (color === 'white') ? 'black' : 'white';
+        
         // Swap pieces when playing as black (so black pieces are at bottom)
         if (color === 'black' && !this.boardFlipped) {
             // First time switching to black - swap the pieces
@@ -3487,7 +3490,8 @@ class ChessGame {
                 'hard': 'Hard',
                 'expert': 'Expert'
             };
-            document.getElementById('game-status').textContent = `Bot mode enabled! ${this.botName} plays as Black (${difficultyNames[this.botDifficulty]} level).`;
+            const botColorName = this.botColor === 'white' ? 'White' : 'Black';
+            document.getElementById('game-status').textContent = `Bot mode enabled! ${this.botName} plays as ${botColorName} (${difficultyNames[this.botDifficulty]} level).`;
             setTimeout(() => {
                 document.getElementById('game-status').textContent = '';
             }, 3000);
