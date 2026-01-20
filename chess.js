@@ -1240,6 +1240,7 @@ class ChessGame {
         }
         document.getElementById('game-status').textContent = `Time's up! ${winnerName} wins!`;
         this.updateTimerDisplay();
+        this.updateReviewButtonVisibility();
     }
     
     setupUserInterface() {
@@ -2968,6 +2969,7 @@ class ChessGame {
         
         // Update game info
         this.updateGameInfo();
+        this.updateReviewButtonVisibility();
         
         console.log(`${resigningPlayer} resigned. ${winnerName} wins!`);
     }
@@ -3041,6 +3043,7 @@ class ChessGame {
         
         // Update game info
         this.updateGameInfo();
+        this.updateReviewButtonVisibility();
         
         console.log('Draw accepted! Game ended in a draw.');
     }
@@ -3081,6 +3084,7 @@ class ChessGame {
             document.getElementById('game-status').style.color = '#4CAF50';
             document.getElementById('game-status').style.fontWeight = 'bold';
             console.log('Checkmate detected!', winner, 'wins');
+            this.updateReviewButtonVisibility();
             return;
         }
         
@@ -3092,6 +3096,7 @@ class ChessGame {
             document.getElementById('game-status').style.color = '#FF9800';
             document.getElementById('game-status').style.fontWeight = 'bold';
             console.log('Stalemate detected!');
+            this.updateReviewButtonVisibility();
             return;
         }
         

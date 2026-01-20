@@ -563,6 +563,7 @@ function handleResign() {
     game.winner = MP.myColor;
     showMsg('Opponent resigned! You win!');
     game.updateGameInfo();
+    game.updateReviewButtonVisibility();
 }
 
 // ========== HANDLE DRAW OFFER ==========
@@ -573,6 +574,7 @@ function handleDrawOffer() {
         game.winner = 'draw';
         showMsg('Game drawn');
         game.updateGameInfo();
+        game.updateReviewButtonVisibility();
         
         if (MP.connection?.open) {
             MP.connection.send({ type: 'drawAccepted' });
@@ -658,6 +660,7 @@ window.multiplayerResign = function() {
         game.winner = MP.myColor === 'white' ? 'black' : 'white';
         showMsg('You resigned');
         game.updateGameInfo();
+        game.updateReviewButtonVisibility();
     }
 };
 
