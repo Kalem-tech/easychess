@@ -301,6 +301,9 @@ function handleMessage(data) {
         case 'drawOffer':
             handleDrawOffer();
             break;
+        case 'drawAccepted':
+            handleDrawAccepted();
+            break;
         default:
             console.log('Unknown message type:', data.type);
     }
@@ -568,18 +571,55 @@ function handleResign() {
 
 // ========== HANDLE DRAW OFFER ==========
 function handleDrawOffer() {
-    if (confirm('Opponent offers a draw. Accept?')) {
-        const game = window.chessGame;
-        game.gameOver = true;
-        game.winner = 'draw';
-        showMsg('Game drawn');
-        game.updateGameInfo();
-        game.updateReviewButtonVisibility();
-        
-        if (MP.connection?.open) {
-            MP.connection.send({ type: 'drawAccepted' });
-        }
+    const game = window.chessGame;
+    
+    // Update draw button to show "Accept Draw"
+    const drawBtn = document.getElementById('draw-btn');
+    if (drawBtn) {
+        drawBtn.textContent = 'Accept Draw';
+        drawBtn.style.backgroundColor = '#28a745';
     }
+    
+    // Update game status
+    const statusEl = document.getElementById('game-status');
+    if (statusEl) {
+        statusEl.textContent = 'Opponent offers a draw. Click "Accept Draw" to accept.';
+        statusEl.style.color = '#ffc107';
+        statusEl.style.fontWeight = 'bold';
+    }
+    
+    // Set draw offer state
+    game.drawOffer = game.currentPlayer === 'white' ? 'black' : 'white'; // Opponent offered
+    
+    showMsg('Opponent offers a draw');
+}
+
+// Handle draw accepted from opponent
+function handleDrawAccepted() {
+    const game = window.chessGame;
+    game.stopTimer();
+    game.gameOver = true;
+    game.drawOffer = null;
+    
+    // Update game status
+    const statusEl = document.getElementById('game-status');
+    if (statusEl) {
+        statusEl.textContent = 'Game ended in a draw!';
+        statusEl.style.color = '#ffc107';
+        statusEl.style.fontWeight = 'bold';
+    }
+    
+    // Reset draw button
+    const drawBtn = document.getElementById('draw-btn');
+    if (drawBtn) {
+        drawBtn.textContent = 'Draw';
+        drawBtn.style.backgroundColor = '#ffc107';
+    }
+    
+    game.updateGameInfo();
+    game.updateReviewButtonVisibility();
+    
+    showMsg('Game ended in a draw!');
 }
 
 // ========== UI ==========
