@@ -256,8 +256,28 @@ class AuthSystem {
 
     checkAuth() {
         if (!this.currentUser) {
-            window.location.href = 'login.html';
-            return false;
+            // No user found — allow guest/demo mode so the app can initialize
+            // This enables the site to work when deployed publicly without
+            // requiring a login. Real user flows remain unchanged when a
+            // real `currentUser` exists.
+            const guest = {
+                username: 'Guest',
+                email: null,
+                preferences: {
+                    colors: {
+                        lightSquare: '#f0d9b5',
+                        darkSquare: '#b58863',
+                        whitePiece: '#ffffff',
+                        blackPiece: '#000000',
+                        boardContainer: '#ffffff'
+                    },
+                    pieceSet: 'unicode',
+                    backgroundTheme: 'rainy'
+                }
+            };
+            this.setCurrentUser(guest);
+            console.warn('No current user found — entering guest mode');
+            return true;
         }
         return true;
     }
