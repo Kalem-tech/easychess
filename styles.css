@@ -963,6 +963,12 @@ header h1 {
     color: #ff6b6b;
 }
 
+.chessboard-wrapper {
+    position: relative;
+    width: 560px;
+    height: 560px;
+}
+
 .chessboard {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
@@ -999,8 +1005,8 @@ header h1 {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 560px;
+    height: 560px;
     pointer-events: none;
     z-index: 10;
 }
@@ -1198,6 +1204,22 @@ header h1 {
 
 .square:hover:not(.selected) {
     filter: brightness(1.1);
+}
+
+/* Piece symbol styling */
+.piece-symbol {
+    font-size: 50px;
+    line-height: 1;
+    z-index: 1;
+    pointer-events: none;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
 }
 
 #chess-tooltip {
@@ -1869,6 +1891,10 @@ header h1 {
     .square {
         width: 50px;
         height: 50px;
+        font-size: 35px;
+    }
+    
+    .piece-symbol {
         font-size: 35px;
     }
     
