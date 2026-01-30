@@ -56,6 +56,19 @@ class AuthSystem {
             this.handleLogin();
         });
 
+        // Ensure password fields show a helpful placeholder
+        // (covers login and signup forms and any password inputs present)
+        try {
+            document.querySelectorAll('input[type="password"]').forEach(inp => {
+                if (!inp.placeholder || inp.placeholder.trim() === '') {
+                    // Use a clear, user-friendly placeholder
+                    inp.placeholder = inp.id && inp.id.toLowerCase().includes('confirm') ? 'Confirm Password' : 'Password';
+                }
+            });
+        } catch (e) {
+            console.warn('Could not set password placeholders:', e);
+        }
+
         // Signup form
         document.getElementById('signup-form').addEventListener('submit', (e) => {
             e.preventDefault();
