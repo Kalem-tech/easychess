@@ -1,6 +1,5 @@
-// Chess piece sets - different visual styles (Copyright-safe themes only)
+// Chess piece sets - different visual styles
 const PIECE_SETS = {
-    // === CLASSIC STYLES ===
     unicode: {
         name: 'Unicode Symbols',
         white: {
@@ -115,7 +114,52 @@ const PIECE_SETS = {
             pawn: '●'
         }
     },
-    // === HOLIDAYS ===
+    anime: {
+        name: 'Anime Characters',
+        white: {
+            king: '♔',
+            queen: '♕',
+            rook: '♖',
+            bishop: '♗',
+            knight: '♘',
+            pawn: '♙'
+        },
+        black: {
+            king: '♚',
+            queen: '♛',
+            rook: '♜',
+            bishop: '♝',
+            knight: '♞',
+            pawn: '♟'
+        }
+    },
+    demonSlayer: {
+        name: 'Demon Slayer - Main Cast',
+        white: {
+            king: '🔥', queen: '👧', rook: '💧', bishop: '🦋', knight: '⚡', pawn: '⚔️'
+        },
+        black: {
+            king: '👹', queen: '🌙', rook: '💀', bishop: '👺', knight: '🦇', pawn: '😈'
+        }
+    },
+    demonSlayerHashira: {
+        name: 'Demon Slayer - Hashira',
+        white: {
+            king: '🔥', queen: '💧', rook: '🦋', bishop: '💨', knight: '⚡', pawn: '⚔️'
+        },
+        black: {
+            king: '👹', queen: '🌙', rook: '💀', bishop: '👺', knight: '🦇', pawn: '😈'
+        }
+    },
+    demonSlayerKamado: {
+        name: 'Demon Slayer - Kamado Family',
+        white: {
+            king: '🔥', queen: '👧', rook: '⚡', bishop: '🐗', knight: '💧', pawn: '⚔️'
+        },
+        black: {
+            king: '👹', queen: '🌙', rook: '💀', bishop: '👺', knight: '🦇', pawn: '😈'
+        }
+    },
     christmas: {
         name: 'Christmas',
         white: {
@@ -125,7 +169,145 @@ const PIECE_SETS = {
             king: '🎃', queen: '🎁', rook: '🔔', bishop: '🕯️', knight: '🎄', pawn: '❄️'
         }
     },
-    // === MUSIC & SPORTS ===
+    // Movies & TV Shows
+    starWars: {
+        name: 'Star Wars',
+        white: {
+            king: '👑', queen: '⭐', rook: '🚀', bishop: '⚔️', knight: '🛸', pawn: '🌟'
+        },
+        black: {
+            king: '⚫', queen: '🌑', rook: '💀', bishop: '🔴', knight: '⚡', pawn: '👤'
+        }
+    },
+    harryPotter: {
+        name: 'Harry Potter',
+        white: {
+            king: '⚡', queen: '🦉', rook: '🪄', bishop: '📚', knight: '🏰', pawn: '✨'
+        },
+        black: {
+            king: '🐍', queen: '💀', rook: '🕷️', bishop: '🌙', knight: '🦇', pawn: '👁️'
+        }
+    },
+    gameOfThrones: {
+        name: 'Game of Thrones',
+        white: {
+            king: '👑', queen: '🐺', rook: '🦁', bishop: '⚔️', knight: '🛡️', pawn: '🗡️'
+        },
+        black: {
+            king: '🐉', queen: '❄️', rook: '💀', bishop: '🔥', knight: '👻', pawn: '⚫'
+        }
+    },
+    marvel: {
+        name: 'Marvel',
+        white: {
+            king: '🦸', queen: '⚡', rook: '🛡️', bishop: '🕷️', knight: '🔨', pawn: '⭐'
+        },
+        black: {
+            king: '💀', queen: '👹', rook: '🌑', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    dc: {
+        name: 'DC Comics',
+        white: {
+            king: '🦇', queen: '⚡', rook: '🛡️', bishop: '👸', knight: '🦸', pawn: '⭐'
+        },
+        black: {
+            king: '👹', queen: '💀', rook: '🌑', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    breakingBad: {
+        name: 'Breaking Bad',
+        white: {
+            king: '🧪', queen: '⚗️', rook: '💊', bishop: '🔬', knight: '🚗', pawn: '💰'
+        },
+        black: {
+            king: '💀', queen: '🔫', rook: '🌑', bishop: '⚫', knight: '👤', pawn: '💵'
+        }
+    },
+    strangerThings: {
+        name: 'Stranger Things',
+        white: {
+            king: '🔮', queen: '⭐', rook: '🚲', bishop: '📻', knight: '🎮', pawn: '✨'
+        },
+        black: {
+            king: '👹', queen: '🌑', rook: '💀', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    // Video Games
+    pokemon: {
+        name: 'Pokemon',
+        white: {
+            king: '⚡', queen: '🔥', rook: '💧', bishop: '🌿', knight: '⭐', pawn: '🐾'
+        },
+        black: {
+            king: '🌑', queen: '💀', rook: '👹', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    mario: {
+        name: 'Super Mario',
+        white: {
+            king: '🍄', queen: '⭐', rook: '🪙', bishop: '🌸', knight: '🐢', pawn: '💎'
+        },
+        black: {
+            king: '👹', queen: '🌑', rook: '💀', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    minecraft: {
+        name: 'Minecraft',
+        white: {
+            king: '⛏️', queen: '💎', rook: '🪵', bishop: '🌿', knight: '🐷', pawn: '🧱'
+        },
+        black: {
+            king: '💀', queen: '🌑', rook: '👹', bishop: '⚫', knight: '🕷️', pawn: '🔴'
+        }
+    },
+    zelda: {
+        name: 'Zelda',
+        white: {
+            king: '🗡️', queen: '🛡️', rook: '💎', bishop: '⭐', knight: '🏹', pawn: '✨'
+        },
+        black: {
+            king: '👹', queen: '🌑', rook: '💀', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    fortnite: {
+        name: 'Fortnite',
+        white: {
+            king: '🎯', queen: '🏆', rook: '💎', bishop: '⭐', knight: '🎮', pawn: '🔫'
+        },
+        black: {
+            king: '💀', queen: '🌑', rook: '👹', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    // Anime
+    naruto: {
+        name: 'Naruto',
+        white: {
+            king: '🔥', queen: '⚡', rook: '💨', bishop: '🌊', knight: '🌿', pawn: '⭐'
+        },
+        black: {
+            king: '👹', queen: '🌑', rook: '💀', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    onePiece: {
+        name: 'One Piece',
+        white: {
+            king: '🏴‍☠️', queen: '⚓', rook: '🗺️', bishop: '💎', knight: '⚔️', pawn: '⭐'
+        },
+        black: {
+            king: '👹', queen: '🌑', rook: '💀', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    attackOnTitan: {
+        name: 'Attack on Titan',
+        white: {
+            king: '⚔️', queen: '🛡️', rook: '🏰', bishop: '🔥', knight: '⚡', pawn: '⭐'
+        },
+        black: {
+            king: '👹', queen: '🌑', rook: '💀', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    // Music
     rock: {
         name: 'Rock Music',
         white: {
@@ -144,7 +326,26 @@ const PIECE_SETS = {
             king: '🎤', queen: '🎧', rook: '💿', bishop: '🎵', knight: '⭐', pawn: '🔥'
         }
     },
-    // === SPORTS ===
+    // Tech Companies
+    apple: {
+        name: 'Apple',
+        white: {
+            king: '🍎', queen: '💻', rook: '📱', bishop: '⌚', knight: '🎧', pawn: '⚡'
+        },
+        black: {
+            king: '🍎', queen: '💻', rook: '📱', bishop: '⌚', knight: '🎧', pawn: '⚡'
+        }
+    },
+    google: {
+        name: 'Google',
+        white: {
+            king: '🔍', queen: '🌐', rook: '📱', bishop: '💻', knight: '⚡', pawn: '⭐'
+        },
+        black: {
+            king: '🔍', queen: '🌐', rook: '📱', bishop: '💻', knight: '⚡', pawn: '⭐'
+        }
+    },
+    // Sports
     football: {
         name: 'Football',
         white: {
@@ -211,7 +412,102 @@ const PIECE_SETS = {
             king: '🌑', queen: '🌌', rook: '💫', bishop: '🪐', knight: '☄️', pawn: '⭐'
         }
     },
-    // === STYLE THEMES ===
+    // More Movies
+    matrix: {
+        name: 'The Matrix',
+        white: {
+            king: '💊', queen: '🕶️', rook: '⌨️', bishop: '💻', knight: '⚡', pawn: '🔴'
+        },
+        black: {
+            king: '🌑', queen: '⚫', rook: '💀', bishop: '👤', knight: '🔴', pawn: '⚫'
+        }
+    },
+    lordOfTheRings: {
+        name: 'Lord of the Rings',
+        white: {
+            king: '👑', queen: '💍', rook: '🗡️', bishop: '🛡️', knight: '🏰', pawn: '⭐'
+        },
+        black: {
+            king: '👹', queen: '🌑', rook: '💀', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    // More TV Shows
+    theOffice: {
+        name: 'The Office',
+        white: {
+            king: '📄', queen: '☕', rook: '📞', bishop: '💼', knight: '🎯', pawn: '⭐'
+        },
+        black: {
+            king: '📄', queen: '☕', rook: '📞', bishop: '💼', knight: '🎯', pawn: '⭐'
+        }
+    },
+    friends: {
+        name: 'Friends',
+        white: {
+            king: '☕', queen: '🍕', rook: '🛋️', bishop: '💛', knight: '⭐', pawn: '✨'
+        },
+        black: {
+            king: '☕', queen: '🍕', rook: '🛋️', bishop: '💛', knight: '⭐', pawn: '✨'
+        }
+    },
+    // More Video Games
+    amongUs: {
+        name: 'Among Us',
+        white: {
+            king: '👨‍🚀', queen: '🚀', rook: '🔴', bishop: '🟢', knight: '🔵', pawn: '⭐'
+        },
+        black: {
+            king: '👨‍🚀', queen: '🚀', rook: '🔴', bishop: '🟢', knight: '🔵', pawn: '⭐'
+        }
+    },
+    roblox: {
+        name: 'Roblox',
+        white: {
+            king: '🎮', queen: '🧱', rook: '⭐', bishop: '💎', knight: '🎯', pawn: '✨'
+        },
+        black: {
+            king: '🎮', queen: '🧱', rook: '⭐', bishop: '💎', knight: '🎯', pawn: '✨'
+        }
+    },
+    // More Anime
+    dragonBall: {
+        name: 'Dragon Ball',
+        white: {
+            king: '⚡', queen: '🔥', rook: '💥', bishop: '⭐', knight: '👊', pawn: '✨'
+        },
+        black: {
+            king: '⚡', queen: '🔥', rook: '💥', bishop: '⭐', knight: '👊', pawn: '✨'
+        }
+    },
+    myHeroAcademia: {
+        name: 'My Hero Academia',
+        white: {
+            king: '🦸', queen: '⚡', rook: '🔥', bishop: '💪', knight: '⭐', pawn: '✨'
+        },
+        black: {
+            king: '👹', queen: '🌑', rook: '💀', bishop: '⚫', knight: '👤', pawn: '🔴'
+        }
+    },
+    // Social Media
+    instagram: {
+        name: 'Instagram',
+        white: {
+            king: '📷', queen: '💜', rook: '⭐', bishop: '✨', knight: '🔥', pawn: '💖'
+        },
+        black: {
+            king: '📷', queen: '💜', rook: '⭐', bishop: '✨', knight: '🔥', pawn: '💖'
+        }
+    },
+    tiktok: {
+        name: 'TikTok',
+        white: {
+            king: '🎵', queen: '💃', rook: '⭐', bishop: '✨', knight: '🔥', pawn: '💖'
+        },
+        black: {
+            king: '🎵', queen: '💃', rook: '⭐', bishop: '✨', knight: '🔥', pawn: '💖'
+        }
+    },
+    // More Themes
     retro: {
         name: 'Retro 80s',
         white: {
@@ -257,7 +553,26 @@ const PIECE_SETS = {
             king: '🐰', queen: '🥚', rook: '🌸', bishop: '🌷', knight: '🐣', pawn: '💐'
         }
     },
-    // === MORE STYLES ===
+    // More Pop Culture
+    disney: {
+        name: 'Disney',
+        white: {
+            king: '👑', queen: '⭐', rook: '✨', bishop: '🎆', knight: '🏰', pawn: '💫'
+        },
+        black: {
+            king: '👑', queen: '⭐', rook: '✨', bishop: '🎆', knight: '🏰', pawn: '💫'
+        }
+    },
+    starTrek: {
+        name: 'Star Trek',
+        white: {
+            king: '🖖', queen: '🚀', rook: '⭐', bishop: '🌌', knight: '🛸', pawn: '✨'
+        },
+        black: {
+            king: '🖖', queen: '🚀', rook: '⭐', bishop: '🌌', knight: '🛸', pawn: '✨'
+        }
+    },
+    // Final additions to reach 50
     emoji: {
         name: 'Emoji Party',
         white: {
@@ -684,13 +999,23 @@ class ChessGame {
         this.setupEventListeners();
         this.updateGameInfo();
         
-        // Apply colors to the board - use saved preferences or defaults
-        // Only set default colors if not already set from user preferences
-        if (!this.colors.lightSquare) this.colors.lightSquare = '#f0d9b5';
-        if (!this.colors.darkSquare) this.colors.darkSquare = '#b58863';
+        // Force both square colors to classic colors
+        this.colors.lightSquare = '#f0d9b5';
+        this.colors.darkSquare = '#b58863';
         
-        // Apply colors to the board
+        // Apply colors to the board - force apply to all squares
         this.applyColors();
+        
+        // Force reapply colors multiple times to ensure they stick
+        setTimeout(() => {
+            this.applyColors();
+        }, 50);
+        setTimeout(() => {
+            this.applyColors();
+        }, 200);
+        setTimeout(() => {
+            this.applyColors();
+        }, 500);
         this.applyBackground();
         this.initializeTimers();
         // Don't start timer automatically - wait for Start Game button
@@ -1043,21 +1368,17 @@ class ChessGame {
                 square.dataset.row = actualRow; // Store actual board coordinates
                 square.dataset.col = actualCol;
                 
-                // Add coordinates - flip when playing as black
+                // Add coordinates
                 if (displayCol === 0) {
                     const rank = document.createElement('span');
                     rank.className = 'coordinate rank';
-                    // When board is flipped (black's perspective), show 1-8 from top
-                    rank.textContent = this.boardFlipped ? (displayRow + 1) : (8 - displayRow);
+                    rank.textContent = 8 - displayRow; // 8-1 from top
                     square.appendChild(rank);
                 }
                 if (displayRow === 7) {
                     const file = document.createElement('span');
                     file.className = 'coordinate file';
-                    // When board is flipped, show h-a from left
-                    file.textContent = this.boardFlipped 
-                        ? String.fromCharCode(104 - displayCol)  // h-a
-                        : String.fromCharCode(97 + displayCol);   // a-h
+                    file.textContent = String.fromCharCode(97 + displayCol); // a-h from left
                     square.appendChild(file);
                 }
                 
@@ -1065,11 +1386,7 @@ class ChessGame {
                 const piece = this.board[actualRow][actualCol];
                 if (piece) {
                     const pieceSet = PIECE_SETS[this.pieceSet];
-                    // Create a span for the piece to avoid overwriting coordinates
-                    const pieceSpan = document.createElement('span');
-                    pieceSpan.className = 'piece-symbol';
-                    pieceSpan.textContent = pieceSet[piece.color][piece.type];
-                    square.appendChild(pieceSpan);
+                    square.textContent = pieceSet[piece.color][piece.type];
                     
                     // Remove color filters and let pieces use their natural colors
                     square.style.removeProperty('color');
@@ -1091,8 +1408,16 @@ class ChessGame {
         this.updateSquareStates();
         this.setupTooltips();
         
-        // Apply colors after rendering
+        // Force apply colors immediately after rendering
         this.applyColors();
+        
+        // Force reapply colors multiple times to ensure they stick
+        setTimeout(() => {
+            this.applyColors();
+        }, 50);
+        setTimeout(() => {
+            this.applyColors();
+        }, 200);
     }
     
     setupTooltips() {
@@ -1898,17 +2223,8 @@ class ChessGame {
             const row = parseInt(square.dataset.row);
             const col = parseInt(square.dataset.col);
             const boardPiece = this.board[row][col];
-            
-            // Find or create piece span
-            let pieceSpan = square.querySelector('.piece-symbol');
-            
             if (boardPiece) {
-                if (!pieceSpan) {
-                    pieceSpan = document.createElement('span');
-                    pieceSpan.className = 'piece-symbol';
-                    square.appendChild(pieceSpan);
-                }
-                pieceSpan.textContent = pieceSet[boardPiece.color][boardPiece.type];
+                square.textContent = pieceSet[boardPiece.color][boardPiece.type];
                 
                 // Remove color filters and let pieces use their natural colors
                 square.style.removeProperty('color');
@@ -1920,10 +2236,6 @@ class ChessGame {
                 square.setAttribute('data-piece-type', boardPiece.type);
                 square.setAttribute('data-piece-color', boardPiece.color);
             } else {
-                // Remove piece span if no piece
-                if (pieceSpan) {
-                    pieceSpan.remove();
-                }
                 square.removeAttribute('data-piece-type');
                 square.removeAttribute('data-piece-color');
                 square.title = '';
@@ -2671,10 +2983,6 @@ class ChessGame {
         // If opponent has offered a draw, accept it
         if (this.drawOffer && this.drawOffer !== this.currentPlayer) {
             this.acceptDraw();
-            // In multiplayer, notify opponent that draw was accepted
-            if (this.multiplayer && this.multiplayer.connection?.open) {
-                this.multiplayer.connection.send({ type: 'drawAccepted' });
-            }
             return;
         }
         
@@ -2683,15 +2991,7 @@ class ChessGame {
             return;
         }
         
-        // In multiplayer mode, send draw offer to opponent
-        if (this.multiplayer && this.multiplayer.connection?.open) {
-            this.multiplayer.connection.send({ type: 'drawOffer' });
-            document.getElementById('game-status').textContent = 'Draw offer sent to opponent...';
-            document.getElementById('game-status').style.color = '#ffc107';
-            return;
-        }
-        
-        // Offer a draw to the opponent (local/bot mode)
+        // Offer a draw to the opponent
         this.drawOffer = this.currentPlayer;
         // Use bot name if current player is bot
         let offeringPlayer = this.currentPlayer === 'white' ? 'White' : 'Black';
