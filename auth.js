@@ -317,3 +317,18 @@ class AuthSystem {
 
 // Initialize auth system
 const auth = new AuthSystem();
+
+// Ensure any password inputs (login/signup) show a helpful placeholder
+// This runs independently of the AuthSystem flow so pages that render
+// the forms after script execution still get placeholders.
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        document.querySelectorAll('input[type="password"]').forEach(inp => {
+            if (!inp.placeholder || inp.placeholder.trim() === '') {
+                inp.placeholder = inp.id && inp.id.toLowerCase().includes('confirm') ? 'Confirm Password' : 'Password';
+            }
+        });
+    } catch (e) {
+        console.warn('Failed to set password placeholders on DOMContentLoaded', e);
+    }
+});
