@@ -995,6 +995,12 @@ header h1 {
     gap: 15px;
 }
 
+.board-wrapper {
+    position: relative;
+    width: 560px;
+    height: 560px;
+}
+
 .player-profiles {
     position: absolute;
     top: 0;
