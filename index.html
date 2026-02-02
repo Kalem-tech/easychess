@@ -3,8 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Game</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Chess Game - Play Online Chess with Custom Themes</title>
+    <meta name="title" content="Chess Game - Play Online Chess with Custom Themes">
+    <meta name="description" content="Play chess online with friends or against AI. Customize your board with 50+ themes, multiple piece styles, and play multiplayer games. Free online chess game.">
+    <meta name="keywords" content="chess, online chess, play chess, chess game, multiplayer chess, chess themes, chess customization, free chess">
+    <meta name="author" content="Chess Game">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    
+    <!-- Favicon and Manifest -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟️</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-chess-site.vercel.app/">
+    <meta property="og:title" content="Chess Game - Play Online Chess with Custom Themes">
+    <meta property="og:description" content="Play chess online with friends or against AI. Customize your board with 50+ themes and multiple piece styles.">
+    <meta property="og:image" content="https://your-chess-site.vercel.app/og-image.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-chess-site.vercel.app/">
+    <meta property="twitter:title" content="Chess Game - Play Online Chess with Custom Themes">
+    <meta property="twitter:description" content="Play chess online with friends or against AI. Customize your board with 50+ themes and multiple piece styles.">
+    <meta property="twitter:image" content="https://your-chess-site.vercel.app/og-image.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟️</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟️</text></svg>">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Preconnect for external resources -->
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://unpkg.com">
 </head>
 <body>
     <div class="cloud-container" id="cloud-container"></div>
@@ -101,7 +142,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="chessboard" class="chessboard">
+                        <div id="chessboard" class="chessboard" style="display: grid;">
                             <div class="player-profiles">
                                 <div class="player-profile white-profile">
                                     <div class="profile-avatar">
@@ -453,8 +494,37 @@
     </div>
 
     <!-- PeerJS for peer-to-peer multiplayer -->
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" crossorigin="anonymous"></script>
     
+    <!-- Error Handling -->
+    <script>
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            // Don't show alerts in production, just log
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.error('Error details:', e);
+            }
+        });
+
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+        });
+
+        // Check if scripts loaded successfully
+        window.addEventListener('load', function() {
+            const scripts = ['auth.js', 'multiplayer.js', 'chess.js', 'rain.js'];
+            scripts.forEach(function(script) {
+                const scriptElement = Array.from(document.scripts).find(s => s.src.includes(script));
+                if (!scriptElement) {
+                    console.warn('Script may not have loaded:', script);
+                }
+            });
+        });
+    </script>
+    
+    <!-- Main Application Scripts -->
     <script src="auth.js"></script>
     <script src="multiplayer.js"></script>
     <script src="chess.js"></script>
