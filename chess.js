@@ -22,268 +22,18 @@ const PIECE_SETS = {
     },
     letters: {
         name: 'Letter Notation',
-        white: {
-            king: 'K',
-            queen: 'Q',
-            rook: 'R',
-            bishop: 'B',
-            knight: 'N',
-            pawn: 'P'
-        },
-        black: {
-            king: 'k',
-            queen: 'q',
-            rook: 'r',
-            bishop: 'b',
-            knight: 'n',
-            pawn: 'p'
-        }
-    },
-    bold: {
-        name: 'Bold Unicode',
-        white: {
-            king: '🅚',
-            queen: '🅠',
-            rook: '🅡',
-            bishop: '🅑',
-            knight: '🅝',
-            pawn: '🅟'
-        },
-        black: {
-            king: '🅚',
-            queen: '🅠',
-            rook: '🅡',
-            bishop: '🅑',
-            knight: '🅝',
-            pawn: '🅟'
-        }
-    },
-    circles: {
-        name: 'Circle Symbols',
-        white: {
-            king: 'Ⓚ',
-            queen: 'Ⓠ',
-            rook: 'Ⓡ',
-            bishop: 'Ⓑ',
-            knight: 'Ⓝ',
-            pawn: 'Ⓟ'
-        },
-        black: {
-            king: 'ⓚ',
-            queen: 'ⓠ',
-            rook: 'ⓡ',
-            bishop: 'ⓑ',
-            knight: 'ⓝ',
-            pawn: 'ⓟ'
-        }
-    },
-    squares: {
-        name: 'Square Symbols',
-        white: {
-            king: '▣',
-            queen: '▤',
-            rook: '▥',
-            bishop: '▦',
-            knight: '▧',
-            pawn: '▨'
-        },
-        black: {
-            king: '▢',
-            queen: '▣',
-            rook: '▤',
-            bishop: '▥',
-            knight: '▦',
-            pawn: '▧'
-        }
+        white: { king: 'K', queen: 'Q', rook: 'R', bishop: 'B', knight: 'N', pawn: 'P' },
+        black: { king: 'k', queen: 'q', rook: 'r', bishop: 'b', knight: 'n', pawn: 'p' }
     },
     simple: {
         name: 'Simple Shapes',
-        white: {
-            king: '◉',
-            queen: '◈',
-            rook: '▣',
-            bishop: '◊',
-            knight: '△',
-            pawn: '○'
-        },
-        black: {
-            king: '●',
-            queen: '◆',
-            rook: '■',
-            bishop: '♦',
-            knight: '▲',
-            pawn: '●'
-        }
+        white: { king: '◉', queen: '◈', rook: '▣', bishop: '◊', knight: '△', pawn: '○' },
+        black: { king: '●', queen: '◆', rook: '■', bishop: '♦', knight: '▲', pawn: '●' }
     },
-    // === HOLIDAYS ===
-    christmas: {
-        name: 'Christmas',
-        white: {
-            king: '🎅', queen: '🎄', rook: '🎁', bishop: '❄️', knight: '🦌', pawn: '⭐'
-        },
-        black: {
-            king: '🎃', queen: '🎁', rook: '🔔', bishop: '🕯️', knight: '🎄', pawn: '❄️'
-        }
-    },
-    // === MUSIC & SPORTS ===
-    rock: {
-        name: 'Rock Music',
-        white: {
-            king: '🎸', queen: '🎤', rook: '🥁', bishop: '🎹', knight: '🎵', pawn: '⭐'
-        },
-        black: {
-            king: '🎸', queen: '🎤', rook: '🥁', bishop: '🎹', knight: '🎵', pawn: '⭐'
-        }
-    },
-    hipHop: {
-        name: 'Hip Hop',
-        white: {
-            king: '🎤', queen: '🎧', rook: '💿', bishop: '🎵', knight: '⭐', pawn: '🔥'
-        },
-        black: {
-            king: '🎤', queen: '🎧', rook: '💿', bishop: '🎵', knight: '⭐', pawn: '🔥'
-        }
-    },
-    // === SPORTS ===
-    football: {
-        name: 'Football',
-        white: {
-            king: '🏈', queen: '🏆', rook: '⚽', bishop: '🎯', knight: '⭐', pawn: '🔥'
-        },
-        black: {
-            king: '🏈', queen: '🏆', rook: '⚽', bishop: '🎯', knight: '⭐', pawn: '🔥'
-        }
-    },
-    basketball: {
-        name: 'Basketball',
-        white: {
-            king: '🏀', queen: '🏆', rook: '⚡', bishop: '⭐', knight: '🔥', pawn: '💪'
-        },
-        black: {
-            king: '🏀', queen: '🏆', rook: '⚡', bishop: '⭐', knight: '🔥', pawn: '💪'
-        }
-    },
-    // Food & Drink
-    pizza: {
-        name: 'Pizza',
-        white: {
-            king: '🍕', queen: '🧀', rook: '🍅', bishop: '🌶️', knight: '🍄', pawn: '🫒'
-        },
-        black: {
-            king: '🍕', queen: '🧀', rook: '🍅', bishop: '🌶️', knight: '🍄', pawn: '🫒'
-        }
-    },
-    coffee: {
-        name: 'Coffee',
-        white: {
-            king: '☕', queen: '🥐', rook: '🍩', bishop: '🍰', knight: '🍪', pawn: '⭐'
-        },
-        black: {
-            king: '☕', queen: '🥐', rook: '🍩', bishop: '🍰', knight: '🍪', pawn: '⭐'
-        }
-    },
-    // Nature & Animals
-    ocean: {
-        name: 'Ocean Life',
-        white: {
-            king: '🐋', queen: '🐙', rook: '🦈', bishop: '🐠', knight: '🐚', pawn: '🌊'
-        },
-        black: {
-            king: '🐋', queen: '🐙', rook: '🦈', bishop: '🐠', knight: '🐚', pawn: '🌊'
-        }
-    },
-    forest: {
-        name: 'Forest',
-        white: {
-            king: '🌲', queen: '🦌', rook: '🐻', bishop: '🦉', knight: '🐺', pawn: '🍄'
-        },
-        black: {
-            king: '🌲', queen: '🦌', rook: '🐻', bishop: '🦉', knight: '🐺', pawn: '🍄'
-        }
-    },
-    // Space
-    space: {
-        name: 'Space',
-        white: {
-            king: '🌍', queen: '🌙', rook: '⭐', bishop: '🚀', knight: '🛸', pawn: '✨'
-        },
-        black: {
-            king: '🌑', queen: '🌌', rook: '💫', bishop: '🪐', knight: '☄️', pawn: '⭐'
-        }
-    },
-    // === STYLE THEMES ===
-    retro: {
-        name: 'Retro 80s',
-        white: {
-            king: '📼', queen: '💿', rook: '📻', bishop: '🎮', knight: '🕹️', pawn: '⭐'
-        },
-        black: {
-            king: '📼', queen: '💿', rook: '📻', bishop: '🎮', knight: '🕹️', pawn: '⭐'
-        }
-    },
-    cyberpunk: {
-        name: 'Cyberpunk',
-        white: {
-            king: '💻', queen: '🌐', rook: '⚡', bishop: '🔮', knight: '🤖', pawn: '💎'
-        },
-        black: {
-            king: '🌑', queen: '⚫', rook: '💀', bishop: '🔴', knight: '👤', pawn: '🔵'
-        }
-    },
-    halloween: {
-        name: 'Halloween',
-        white: {
-            king: '🎃', queen: '👻', rook: '🦇', bishop: '🕷️', knight: '💀', pawn: '🕯️'
-        },
-        black: {
-            king: '🌑', queen: '👹', rook: '💀', bishop: '🦇', knight: '👻', pawn: '🕷️'
-        }
-    },
-    valentines: {
-        name: 'Valentine\'s Day',
-        white: {
-            king: '💕', queen: '💖', rook: '💗', bishop: '💝', knight: '🌹', pawn: '💌'
-        },
-        black: {
-            king: '💕', queen: '💖', rook: '💗', bishop: '💝', knight: '🌹', pawn: '💌'
-        }
-    },
-    easter: {
-        name: 'Easter',
-        white: {
-            king: '🐰', queen: '🥚', rook: '🌸', bishop: '🌷', knight: '🐣', pawn: '💐'
-        },
-        black: {
-            king: '🐰', queen: '🥚', rook: '🌸', bishop: '🌷', knight: '🐣', pawn: '💐'
-        }
-    },
-    // === MORE STYLES ===
     emoji: {
-        name: 'Emoji Party',
-        white: {
-            king: '😎', queen: '🤩', rook: '😍', bishop: '🥳', knight: '🎉', pawn: '⭐'
-        },
-        black: {
-            king: '😎', queen: '🤩', rook: '😍', bishop: '🥳', knight: '🎉', pawn: '⭐'
-        }
-    },
-    rainbow: {
-        name: 'Rainbow',
-        white: {
-            king: '🌈', queen: '☀️', rook: '☁️', bishop: '⭐', knight: '✨', pawn: '💫'
-        },
-        black: {
-            king: '🌈', queen: '☀️', rook: '☁️', bishop: '⭐', knight: '✨', pawn: '💫'
-        }
-    },
-    neon: {
-        name: 'Neon',
-        white: {
-            king: '💡', queen: '⚡', rook: '🔆', bishop: '✨', knight: '⭐', pawn: '💫'
-        },
-        black: {
-            king: '💡', queen: '⚡', rook: '🔆', bishop: '✨', knight: '⭐', pawn: '💫'
-        }
+        name: 'Emoji',
+        white: { king: '👑', queen: '👸', rook: '🏰', bishop: '⛪', knight: '🐎', pawn: '⚪' },
+        black: { king: '👑', queen: '👸', rook: '🏰', bishop: '⛪', knight: '🐎', pawn: '⚫' }
     }
 };
 
@@ -923,7 +673,7 @@ class ChessGame {
         if (typeof auth !== 'undefined' && auth && auth.currentUser) {
             const usernameDisplay = document.getElementById('username-display');
             if (usernameDisplay) {
-                usernameDisplay.textContent = `👤 ${auth.currentUser.username} /gmail`;
+                usernameDisplay.textContent = `ðŸ‘¤ ${auth.currentUser.username} /gmail`;
             }
             
             // Setup logout button
@@ -2457,7 +2207,7 @@ class ChessGame {
             
             // Make bot move quickly (small delay for visual feedback and to ensure state is updated)
             setTimeout(() => {
-                console.log('🚀 Triggering bot move after player move');
+                console.log('ðŸš€ Triggering bot move after player move');
                 this.makeBotMove();
             }, 150); // Slightly longer delay to ensure makeMove has fully completed
         } else {
@@ -3000,7 +2750,7 @@ class ChessGame {
                 if (!whiteProfileAvatar.querySelector('.avatar-icon') && !whiteProfileAvatar.querySelector('img')) {
                     const icon = document.createElement('span');
                     icon.className = 'avatar-icon';
-                    icon.textContent = '♔';
+                    icon.textContent = 'â™”';
                     whiteProfileAvatar.appendChild(icon);
                 }
             }
@@ -3067,7 +2817,7 @@ class ChessGame {
                 if (!blackProfileAvatar.querySelector('.avatar-icon')) {
                     const icon = document.createElement('span');
                     icon.className = 'avatar-icon';
-                    icon.textContent = '♚';
+                    icon.textContent = 'â™š';
                     blackProfileAvatar.innerHTML = '';
                     blackProfileAvatar.appendChild(icon);
                 }
@@ -3130,7 +2880,7 @@ class ChessGame {
                     whiteTimerProfilePic.innerHTML = '';
                     const icon = document.createElement('span');
                     icon.className = 'timer-profile-icon';
-                    icon.textContent = '♔';
+                    icon.textContent = 'â™”';
                     whiteTimerProfilePic.appendChild(icon);
                 }
             }
@@ -3161,7 +2911,7 @@ class ChessGame {
                     blackTimerProfilePic.innerHTML = '';
                     const icon = document.createElement('span');
                     icon.className = 'timer-profile-icon';
-                    icon.textContent = '♚';
+                    icon.textContent = 'â™š';
                     blackTimerProfilePic.appendChild(icon);
                 }
             }
@@ -3828,12 +3578,12 @@ class ChessGame {
             
             // Final validation before executing
             if (!this.isValidMove(bestMove.fromRow, bestMove.fromCol, bestMove.toRow, bestMove.toCol)) {
-                console.warn('⚠️ Selected move failed validation, trying first valid move');
+                console.warn('âš ï¸ Selected move failed validation, trying first valid move');
                 if (validMoves.length > 0) {
                     bestMove = validMoves[0];
                     console.log('Using first valid move:', bestMove);
                 } else {
-                    console.error('❌ No valid moves available!');
+                    console.error('âŒ No valid moves available!');
                     return;
                 }
             }
@@ -3841,9 +3591,9 @@ class ChessGame {
             // Execute the move directly
             this.makeMove(bestMove.fromRow, bestMove.fromCol, bestMove.toRow, bestMove.toCol);
             
-            console.log('✅✅✅ BOT MOVE EXECUTED SUCCESSFULLY! ✅✅✅');
+            console.log('âœ…âœ…âœ… BOT MOVE EXECUTED SUCCESSFULLY! âœ…âœ…âœ…');
         } catch (error) {
-            console.error('❌❌❌ CRITICAL ERROR making bot move:', error);
+            console.error('âŒâŒâŒ CRITICAL ERROR making bot move:', error);
             console.error('Move that failed:', bestMove);
             console.error('Error message:', error.message);
             if (error.stack) {
@@ -3853,17 +3603,17 @@ class ChessGame {
             // Last resort - try first valid move
             if (validMoves.length > 0) {
                 const fallbackMove = validMoves[0];
-                console.log('🔄 Trying fallback move:', fallbackMove);
+                console.log('ðŸ”„ Trying fallback move:', fallbackMove);
                 try {
                     // Re-validate fallback move
                     if (this.isValidMove(fallbackMove.fromRow, fallbackMove.fromCol, fallbackMove.toRow, fallbackMove.toCol)) {
                         this.makeMove(fallbackMove.fromRow, fallbackMove.fromCol, fallbackMove.toRow, fallbackMove.toCol);
-                        console.log('✅ Fallback move executed successfully');
+                        console.log('âœ… Fallback move executed successfully');
                     } else {
-                        console.error('❌ Fallback move is also invalid');
+                        console.error('âŒ Fallback move is also invalid');
                     }
                 } catch (fallbackError) {
-                    console.error('❌ Fallback move also failed:', fallbackError);
+                    console.error('âŒ Fallback move also failed:', fallbackError);
                 }
             }
         }
@@ -3928,7 +3678,7 @@ class ChessGame {
         document.getElementById('resign-btn').style.display = 'none';
         
         this.updateReviewDisplay();
-        document.getElementById('game-status').textContent = '📖 Review Mode';
+        document.getElementById('game-status').textContent = 'ðŸ“– Review Mode';
         document.getElementById('game-status').style.color = '#667eea';
     }
     
@@ -4000,7 +3750,7 @@ class ChessGame {
         // Show the move that led to this position
         if (moveNum > 0 && this.moveHistory[moveNum - 1]) {
             const move = this.moveHistory[moveNum - 1];
-            const player = move.player === 'white' ? '⚪' : '⚫';
+            const player = move.player === 'white' ? 'âšª' : 'âš«';
             moveInfo.textContent = `${player} ${move.move}`;
         } else {
             moveInfo.textContent = 'Starting position';
