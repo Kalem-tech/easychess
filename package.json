@@ -2,9 +2,8 @@
   "name": "chess-website",
   "version": "1.0.0",
   "description": "Chess game with multiplayer support",
-  "type": "module",
   "engines": {
-    "node": "24.x"
+    "node": "20.x"
   },
   "dependencies": {
     "convex": "^1.15.0"
