@@ -34,6 +34,111 @@ const PIECE_SETS = {
         name: 'Emoji',
         white: { king: '👑', queen: '👸', rook: '🏰', bishop: '⛪', knight: '🐎', pawn: '⚪' },
         black: { king: '👑', queen: '👸', rook: '🏰', bishop: '⛪', knight: '🐎', pawn: '⚫' }
+    },
+    bold: {
+        name: 'Bold Unicode',
+        white: { king: '𝐊', queen: '𝐐', rook: '𝐑', bishop: '𝐁', knight: '𝐍', pawn: '𝐏' },
+        black: { king: '𝐤', queen: '𝐪', rook: '𝐫', bishop: '𝐛', knight: '𝐧', pawn: '𝐩' }
+    },
+    circles: {
+        name: 'Circle Symbols',
+        white: { king: '⊛', queen: '⊚', rook: '⊡', bishop: '⊘', knight: '⊖', pawn: '○' },
+        black: { king: '⊕', queen: '⊗', rook: '⊞', bishop: '⊜', knight: '⊝', pawn: '●' }
+    },
+    squares: {
+        name: 'Square Symbols',
+        white: { king: '▢', queen: '◇', rook: '▣', bishop: '◈', knight: '△', pawn: '□' },
+        black: { king: '▪', queen: '◆', rook: '■', bishop: '◆', knight: '▲', pawn: '▪' }
+    },
+    // === MUSIC & SPORTS ===
+    rock: {
+        name: 'Rock Music',
+        white: { king: '🎸', queen: '🎤', rook: '🔊', bishop: '🎹', knight: '🥁', pawn: '🎵' },
+        black: { king: '🎸', queen: '🎤', rook: '🔊', bishop: '🎹', knight: '🥁', pawn: '🎶' }
+    },
+    hipHop: {
+        name: 'Hip Hop',
+        white: { king: '👑', queen: '💎', rook: '🏠', bishop: '🎧', knight: '💿', pawn: '🔥' },
+        black: { king: '👑', queen: '💎', rook: '🏠', bishop: '🎧', knight: '💿', pawn: '⭐' }
+    },
+    football: {
+        name: 'Football',
+        white: { king: '🏆', queen: '🏅', rook: '🥅', bishop: '🏃', knight: '⚽', pawn: '🦵' },
+        black: { king: '🏆', queen: '🏅', rook: '🥅', bishop: '🏃', knight: '⚽', pawn: '👟' }
+    },
+    basketball: {
+        name: 'Basketball',
+        white: { king: '🏆', queen: '🏅', rook: '🏀', bishop: '👟', knight: '🦾', pawn: '⭐' },
+        black: { king: '🏆', queen: '🏅', rook: '🏀', bishop: '👟', knight: '🦾', pawn: '🌟' }
+    },
+    // === FOOD & LIFESTYLE ===
+    pizza: {
+        name: 'Pizza',
+        white: { king: '🍕', queen: '🍔', rook: '🍟', bishop: '🌭', knight: '🥤', pawn: '🧀' },
+        black: { king: '🍕', queen: '🍔', rook: '🍟', bishop: '🌭', knight: '🥤', pawn: '🍅' }
+    },
+    coffee: {
+        name: 'Coffee',
+        white: { king: '☕', queen: '🍵', rook: '🥐', bishop: '🍩', knight: '🧁', pawn: '🍪' },
+        black: { king: '☕', queen: '🍵', rook: '🥐', bishop: '🍩', knight: '🧁', pawn: '🍫' }
+    },
+    // === NATURE & SPACE ===
+    ocean: {
+        name: 'Ocean Life',
+        white: { king: '🐋', queen: '🐬', rook: '🦈', bishop: '🐙', knight: '🦑', pawn: '🐟' },
+        black: { king: '🐋', queen: '🐬', rook: '🦈', bishop: '🐙', knight: '🦑', pawn: '🐠' }
+    },
+    forest: {
+        name: 'Forest',
+        white: { king: '🦁', queen: '🦊', rook: '🐻', bishop: '🦌', knight: '🐺', pawn: '🐿️' },
+        black: { king: '🦁', queen: '🦊', rook: '🐻', bishop: '🦌', knight: '🐺', pawn: '🦔' }
+    },
+    space: {
+        name: 'Space',
+        white: { king: '🌟', queen: '🌙', rook: '🚀', bishop: '🛸', knight: '☄️', pawn: '⭐' },
+        black: { king: '🌟', queen: '🌙', rook: '🚀', bishop: '🛸', knight: '☄️', pawn: '💫' }
+    },
+    // === HOLIDAYS ===
+    christmas: {
+        name: 'Christmas',
+        white: { king: '🎅', queen: '🤶', rook: '🎄', bishop: '⛄', knight: '🦌', pawn: '🎁' },
+        black: { king: '🎅', queen: '🤶', rook: '🎄', bishop: '⛄', knight: '🦌', pawn: '❄️' }
+    },
+    halloween: {
+        name: 'Halloween',
+        white: { king: '👻', queen: '🧙', rook: '🏚️', bishop: '🦇', knight: '🐈‍⬛', pawn: '🎃' },
+        black: { king: '👻', queen: '🧙', rook: '🏚️', bishop: '🦇', knight: '🐈‍⬛', pawn: '💀' }
+    },
+    valentines: {
+        name: "Valentine's Day",
+        white: { king: '💖', queen: '💕', rook: '🏩', bishop: '💐', knight: '🥰', pawn: '❤️' },
+        black: { king: '💖', queen: '💕', rook: '🏩', bishop: '💐', knight: '🥰', pawn: '💗' }
+    },
+    easter: {
+        name: 'Easter',
+        white: { king: '🐰', queen: '🐣', rook: '🥚', bishop: '🌷', knight: '🦋', pawn: '🥕' },
+        black: { king: '🐰', queen: '🐣', rook: '🥚', bishop: '🌷', knight: '🦋', pawn: '🌸' }
+    },
+    // === STYLE ===
+    retro: {
+        name: 'Retro 80s',
+        white: { king: '📼', queen: '📺', rook: '📻', bishop: '🕹️', knight: '🛹', pawn: '💾' },
+        black: { king: '📼', queen: '📺', rook: '📻', bishop: '🕹️', knight: '🛹', pawn: '📟' }
+    },
+    cyberpunk: {
+        name: 'Cyberpunk',
+        white: { king: '🤖', queen: '👾', rook: '🏙️', bishop: '💻', knight: '🦾', pawn: '⚡' },
+        black: { king: '🤖', queen: '👾', rook: '🏙️', bishop: '💻', knight: '🦾', pawn: '🔌' }
+    },
+    rainbow: {
+        name: 'Rainbow',
+        white: { king: '🌈', queen: '🦄', rook: '☁️', bishop: '🌸', knight: '🦋', pawn: '⭐' },
+        black: { king: '🌈', queen: '🦄', rook: '☁️', bishop: '🌸', knight: '🦋', pawn: '✨' }
+    },
+    neon: {
+        name: 'Neon',
+        white: { king: '💜', queen: '💙', rook: '💚', bishop: '💛', knight: '🧡', pawn: '❤️' },
+        black: { king: '🟣', queen: '🔵', rook: '🟢', bishop: '🟡', knight: '🟠', pawn: '🔴' }
     }
 };
 
@@ -320,8 +425,9 @@ class ChessGame {
         // Save the corrected colors immediately to override any saved blue colors
         this.savePreferences();
         
-        // Current piece set
-        this.pieceSet = userPrefs?.pieceSet || currentPieceSet;
+        // Current piece set - validate that it exists in PIECE_SETS
+        const savedPieceSet = userPrefs?.pieceSet || currentPieceSet;
+        this.pieceSet = PIECE_SETS[savedPieceSet] ? savedPieceSet : 'unicode';
         currentPieceSet = this.pieceSet;
         
         // Current background theme
@@ -814,7 +920,8 @@ class ChessGame {
                 // Add piece if exists (use actual board coordinates)
                 const piece = this.board[actualRow][actualCol];
                 if (piece) {
-                    const pieceSet = PIECE_SETS[this.pieceSet];
+                    // Fallback to unicode if the selected piece set doesn't exist
+                    const pieceSet = PIECE_SETS[this.pieceSet] || PIECE_SETS['unicode'];
                     // Create a span for the piece to avoid overwriting coordinates
                     const pieceSpan = document.createElement('span');
                     pieceSpan.className = 'piece-symbol';
@@ -1612,7 +1719,8 @@ class ChessGame {
     applyColors() {
         // Apply square colors - ensure all squares get the correct colors
         const squares = document.querySelectorAll('.square');
-        const pieceSet = PIECE_SETS[this.pieceSet];
+        // Fallback to unicode if the selected piece set doesn't exist
+        const pieceSet = PIECE_SETS[this.pieceSet] || PIECE_SETS['unicode'];
         
         // Use the colors from this.colors (which may be from a theme or customization)
         const lightColor = this.colors.lightSquare || '#f0d9b5';
@@ -3779,7 +3887,8 @@ class ChessGame {
         whiteCaptured.innerHTML = '';
         blackCaptured.innerHTML = '';
         
-        const pieceSet = PIECE_SETS[this.pieceSet];
+        // Fallback to unicode if the selected piece set doesn't exist
+        const pieceSet = PIECE_SETS[this.pieceSet] || PIECE_SETS['unicode'];
         this.capturedPieces.white.forEach(piece => {
             const span = document.createElement('span');
             span.className = 'captured-piece';

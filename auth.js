@@ -153,7 +153,7 @@ class AuthSystem {
                     blackPiece: '#000000',
                     boardContainer: '#ffffff'
                 },
-                pieceSet: 'unicode',
+                pieceSet: 'letters',
                 backgroundTheme: 'rainy'
             }
         };
@@ -271,7 +271,7 @@ class AuthSystem {
                         blackPiece: '#000000',
                         boardContainer: '#ffffff'
                     },
-                    pieceSet: 'unicode',
+                    pieceSet: 'letters',
                     backgroundTheme: 'rainy'
                 }
             };
