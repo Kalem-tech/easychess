@@ -135,6 +135,48 @@
         .success-message.show {
             display: block;
         }
+
+        .guest-link {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.95rem;
+            color: #555;
+        }
+        .guest-link a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .guest-link a:hover {
+            text-decoration: underline;
+        }
+
+        .email-code-hint {
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .forgot-password-wrap {
+            margin-top: 8px;
+            margin-bottom: 0;
+            text-align: right;
+            display: block;
+        }
+        .forgot-password-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 4px 0;
+            text-decoration: underline;
+        }
+        .forgot-password-btn:hover {
+            color: #764ba2;
+        }
     </style>
 </head>
 <body>
@@ -142,14 +184,28 @@
         <h2>♔ Chess Game ♔</h2>
         
         <div class="auth-tabs">
-            <button class="auth-tab active" data-tab="login">Login</button>
+            <button class="auth-tab active" data-tab="email">Login</button>
+            <button class="auth-tab" data-tab="login">Password</button>
             <button class="auth-tab" data-tab="signup">Sign Up</button>
         </div>
 
         <div id="error-message" class="error-message"></div>
         <div id="success-message" class="success-message"></div>
 
-        <form id="login-form" class="auth-form active">
+        <form id="email-form" class="auth-form active">
+            <p class="email-code-hint">Enter your Gmail (or any email). We’ll send a 5-digit code so you can log in.</p>
+            <div class="form-group">
+                <label for="email-login">Your email</label>
+                <input type="email" id="email-login" required placeholder="you@gmail.com">
+            </div>
+            <div id="email-code-group" class="form-group" style="display: none;">
+                <label for="email-code">Enter the 5-digit code from your email</label>
+                <input type="text" id="email-code" placeholder="12345" maxlength="5" pattern="[0-9]{5}" inputmode="numeric" autocomplete="one-time-code">
+            </div>
+            <button type="submit" class="auth-btn" id="email-submit-btn">Request code from Gmail</button>
+        </form>
+
+        <form id="login-form" class="auth-form">
             <div class="form-group">
                 <label for="login-username">Username or Email</label>
                 <input type="text" id="login-username" required placeholder="Enter username or email">
@@ -157,6 +213,9 @@
             <div class="form-group">
                 <label for="login-password">Password</label>
                 <input type="password" id="login-password" required placeholder="Enter password">
+                <div class="forgot-password-wrap">
+                    <button type="button" id="forgot-password-btn" class="forgot-password-btn">Forgot password?</button>
+                </div>
             </div>
             <button type="submit" class="auth-btn">Login</button>
         </form>
@@ -180,6 +239,10 @@
             </div>
             <button type="submit" class="auth-btn">Sign Up</button>
         </form>
+
+        <p class="guest-link">
+            <a href="index.html">Play as Guest</a> — no account needed
+        </p>
     </div>
 
     <script src="auth.js"></script>

@@ -1,3 +1,8 @@
+/* Cross-browser: NodeList.forEach in older Safari/IE */
+if (typeof NodeList !== 'undefined' && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = Array.prototype.forEach;
+}
+
 // Chess piece sets - different visual styles (Copyright-safe themes only)
 const PIECE_SETS = {
     // === CLASSIC STYLES ===
@@ -33,7 +38,7 @@ const PIECE_SETS = {
     emoji: {
         name: 'Emoji',
         white: { king: '👑', queen: '👸', rook: '🏰', bishop: '⛪', knight: '🐎', pawn: '⚪' },
-        black: { king: '👑', queen: '👸', rook: '🏰', bishop: '⛪', knight: '🐎', pawn: '⚫' }
+        black: { king: '🤴', queen: '🧛', rook: '🏚️', bishop: '🕍', knight: '🐴', pawn: '⚫' }
     },
     bold: {
         name: 'Bold Unicode',
@@ -54,86 +59,86 @@ const PIECE_SETS = {
     rock: {
         name: 'Rock Music',
         white: { king: '🎸', queen: '🎤', rook: '🔊', bishop: '🎹', knight: '🥁', pawn: '🎵' },
-        black: { king: '🎸', queen: '🎤', rook: '🔊', bishop: '🎹', knight: '🥁', pawn: '🎶' }
+        black: { king: '🎷', queen: '🎙️', rook: '📢', bishop: '🎺', knight: '🪘', pawn: '🎶' }
     },
     hipHop: {
         name: 'Hip Hop',
         white: { king: '👑', queen: '💎', rook: '🏠', bishop: '🎧', knight: '💿', pawn: '🔥' },
-        black: { king: '👑', queen: '💎', rook: '🏠', bishop: '🎧', knight: '💿', pawn: '⭐' }
+        black: { king: '🤴', queen: '💠', rook: '🏚️', bishop: '🎵', knight: '📀', pawn: '⭐' }
     },
     football: {
         name: 'Football',
         white: { king: '🏆', queen: '🏅', rook: '🥅', bishop: '🏃', knight: '⚽', pawn: '🦵' },
-        black: { king: '🏆', queen: '🏅', rook: '🥅', bishop: '🏃', knight: '⚽', pawn: '👟' }
+        black: { king: '🥇', queen: '🎖️', rook: '🏟️', bishop: '🧍', knight: '🏈', pawn: '👟' }
     },
     basketball: {
         name: 'Basketball',
         white: { king: '🏆', queen: '🏅', rook: '🏀', bishop: '👟', knight: '🦾', pawn: '⭐' },
-        black: { king: '🏆', queen: '🏅', rook: '🏀', bishop: '👟', knight: '🦾', pawn: '🌟' }
+        black: { king: '🥇', queen: '🎖️', rook: '🏐', bishop: '🏃', knight: '🎯', pawn: '🌟' }
     },
     // === FOOD & LIFESTYLE ===
     pizza: {
         name: 'Pizza',
         white: { king: '🍕', queen: '🍔', rook: '🍟', bishop: '🌭', knight: '🥤', pawn: '🧀' },
-        black: { king: '🍕', queen: '🍔', rook: '🍟', bishop: '🌭', knight: '🥤', pawn: '🍅' }
+        black: { king: '🍔', queen: '🌮', rook: '🍿', bishop: '🥗', knight: '🍺', pawn: '🍅' }
     },
     coffee: {
         name: 'Coffee',
         white: { king: '☕', queen: '🍵', rook: '🥐', bishop: '🍩', knight: '🧁', pawn: '🍪' },
-        black: { king: '☕', queen: '🍵', rook: '🥐', bishop: '🍩', knight: '🧁', pawn: '🍫' }
+        black: { king: '🫖', queen: '🥛', rook: '🧇', bishop: '🍪', knight: '🍩', pawn: '🍫' }
     },
     // === NATURE & SPACE ===
     ocean: {
         name: 'Ocean Life',
         white: { king: '🐋', queen: '🐬', rook: '🦈', bishop: '🐙', knight: '🦑', pawn: '🐟' },
-        black: { king: '🐋', queen: '🐬', rook: '🦈', bishop: '🐙', knight: '🦑', pawn: '🐠' }
+        black: { king: '🐳', queen: '🦭', rook: '🐟', bishop: '🦀', knight: '🦞', pawn: '🐠' }
     },
     forest: {
         name: 'Forest',
         white: { king: '🦁', queen: '🦊', rook: '🐻', bishop: '🦌', knight: '🐺', pawn: '🐿️' },
-        black: { king: '🦁', queen: '🦊', rook: '🐻', bishop: '🦌', knight: '🐺', pawn: '🦔' }
+        black: { king: '🐯', queen: '🐺', rook: '🦡', bishop: '🐗', knight: '🦉', pawn: '🦔' }
     },
     space: {
         name: 'Space',
         white: { king: '🌟', queen: '🌙', rook: '🚀', bishop: '🛸', knight: '☄️', pawn: '⭐' },
-        black: { king: '🌟', queen: '🌙', rook: '🚀', bishop: '🛸', knight: '☄️', pawn: '💫' }
+        black: { king: '🪐', queen: '🌑', rook: '🛰️', bishop: '🔭', knight: '💥', pawn: '💫' }
     },
     // === HOLIDAYS ===
     christmas: {
         name: 'Christmas',
         white: { king: '🎅', queen: '🤶', rook: '🎄', bishop: '⛄', knight: '🦌', pawn: '🎁' },
-        black: { king: '🎅', queen: '🤶', rook: '🎄', bishop: '⛄', knight: '🦌', pawn: '❄️' }
+        black: { king: '🎄', queen: '🧣', rook: '🏠', bishop: '🎿', knight: '🛷', pawn: '❄️' }
     },
     halloween: {
         name: 'Halloween',
         white: { king: '👻', queen: '🧙', rook: '🏚️', bishop: '🦇', knight: '🐈‍⬛', pawn: '🎃' },
-        black: { king: '👻', queen: '🧙', rook: '🏚️', bishop: '🦇', knight: '🐈‍⬛', pawn: '💀' }
+        black: { king: '🧛', queen: '🧟', rook: '🪦', bishop: '🕷️', knight: '🐺', pawn: '💀' }
     },
     valentines: {
         name: "Valentine's Day",
         white: { king: '💖', queen: '💕', rook: '🏩', bishop: '💐', knight: '🥰', pawn: '❤️' },
-        black: { king: '💖', queen: '💕', rook: '🏩', bishop: '💐', knight: '🥰', pawn: '💗' }
+        black: { king: '💜', queen: '💔', rook: '💒', bishop: '🌹', knight: '💌', pawn: '💗' }
     },
     easter: {
         name: 'Easter',
         white: { king: '🐰', queen: '🐣', rook: '🥚', bishop: '🌷', knight: '🦋', pawn: '🥕' },
-        black: { king: '🐰', queen: '🐣', rook: '🥚', bishop: '🌷', knight: '🦋', pawn: '🌸' }
+        black: { king: '🐣', queen: '🐤', rook: '🪺', bishop: '🌼', knight: '🐛', pawn: '🌸' }
     },
     // === STYLE ===
     retro: {
         name: 'Retro 80s',
         white: { king: '📼', queen: '📺', rook: '📻', bishop: '🕹️', knight: '🛹', pawn: '💾' },
-        black: { king: '📼', queen: '📺', rook: '📻', bishop: '🕹️', knight: '🛹', pawn: '📟' }
+        black: { king: '📠', queen: '📱', rook: '💽', bishop: '🎮', knight: '🎸', pawn: '📟' }
     },
     cyberpunk: {
         name: 'Cyberpunk',
         white: { king: '🤖', queen: '👾', rook: '🏙️', bishop: '💻', knight: '🦾', pawn: '⚡' },
-        black: { king: '🤖', queen: '👾', rook: '🏙️', bishop: '💻', knight: '🦾', pawn: '🔌' }
+        black: { king: '👽', queen: '🛸', rook: '🌃', bishop: '📱', knight: '🔧', pawn: '🔌' }
     },
     rainbow: {
         name: 'Rainbow',
         white: { king: '🌈', queen: '🦄', rook: '☁️', bishop: '🌸', knight: '🦋', pawn: '⭐' },
-        black: { king: '🌈', queen: '🦄', rook: '☁️', bishop: '🌸', knight: '🦋', pawn: '✨' }
+        black: { king: '🌑', queen: '🌧️', rook: '⛈️', bishop: '🍀', knight: '🐸', pawn: '✨' }
     },
     neon: {
         name: 'Neon',
@@ -504,12 +509,14 @@ class ChessGame {
             const prefs = auth.getUserPreferences();
             if (prefs && prefs.colors) {
                 // Check and fix blue colors
+                const ls = prefs.colors.lightSquare;
+                const ds = prefs.colors.darkSquare;
                 const needsFix = prefs.colors.lightSquare !== '#f0d9b5' || 
                                 prefs.colors.darkSquare !== '#b58863' ||
-                                prefs.colors.lightSquare?.toLowerCase().includes('5d7fad') ||
-                                prefs.colors.lightSquare?.toLowerCase().includes('89a9d1') ||
-                                prefs.colors.darkSquare?.toLowerCase().includes('5d7fad') ||
-                                prefs.colors.darkSquare?.toLowerCase().includes('89a9d1');
+                                (ls && ls.toLowerCase && ls.toLowerCase().indexOf('5d7fad') !== -1) ||
+                                (ls && ls.toLowerCase && ls.toLowerCase().indexOf('89a9d1') !== -1) ||
+                                (ds && ds.toLowerCase && ds.toLowerCase().indexOf('5d7fad') !== -1) ||
+                                (ds && ds.toLowerCase && ds.toLowerCase().indexOf('89a9d1') !== -1);
                 
                 if (needsFix) {
                     prefs.colors.lightSquare = '#f0d9b5';
@@ -826,6 +833,38 @@ class ChessGame {
                 }
             });
         }
+
+        // Lessons button and modal
+        const lessonsBtn = document.getElementById('lessons-btn');
+        const lessonsModal = document.getElementById('lessons-modal');
+        const lessonsCloseBtn = document.getElementById('lessons-close-btn');
+        if (lessonsBtn && lessonsModal) {
+            lessonsBtn.addEventListener('click', () => {
+                lessonsModal.classList.add('show');
+            });
+        }
+        if (lessonsCloseBtn && lessonsModal) {
+            lessonsCloseBtn.addEventListener('click', () => {
+                lessonsModal.classList.remove('show');
+            });
+        }
+        if (lessonsModal) {
+            lessonsModal.addEventListener('click', (e) => {
+                if (e.target === lessonsModal) {
+                    lessonsModal.classList.remove('show');
+                }
+            });
+        }
+        document.querySelectorAll('.lesson-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const lessonId = tab.getAttribute('data-lesson');
+                document.querySelectorAll('.lesson-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.lesson-panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                const panel = document.getElementById('lesson-' + lessonId);
+                if (panel) panel.classList.add('active');
+            });
+        });
         
         // Scroll to profile/player names section
         if (profileBtn) {
@@ -924,11 +963,13 @@ class ChessGame {
                     const pieceSet = PIECE_SETS[this.pieceSet] || PIECE_SETS['unicode'];
                     // Create a span for the piece to avoid overwriting coordinates
                     const pieceSpan = document.createElement('span');
-                    pieceSpan.className = 'piece-symbol';
+                    pieceSpan.className = 'piece-symbol piece-' + piece.color;
                     pieceSpan.textContent = pieceSet[piece.color][piece.type];
+                    const pieceColorValue = this.colors[piece.color === 'white' ? 'whitePiece' : 'blackPiece'] || (piece.color === 'white' ? '#ffffff' : '#000000');
+                    pieceSpan.style.setProperty('color', pieceColorValue, 'important');
+                    pieceSpan.style.setProperty('-webkit-text-fill-color', pieceColorValue, 'important');
                     square.appendChild(pieceSpan);
                     
-                    // Remove color filters and let pieces use their natural colors
                     square.style.removeProperty('color');
                     square.style.removeProperty('filter');
                     
@@ -1668,6 +1709,49 @@ class ChessGame {
             setTimeout(setupThemeButtons, 1000);
         }
         
+        // Board style grid (Chess.com-style picker)
+        const setupBoardStyleTiles = () => {
+            const grid = document.getElementById('board-style-grid');
+            if (!grid) return;
+            const tiles = grid.querySelectorAll('.board-style-tile');
+            tiles.forEach(tile => {
+                const light = tile.getAttribute('data-light') || '#f0d9b5';
+                const dark = tile.getAttribute('data-dark') || '#b58863';
+                tile.style.setProperty('--board-light', light);
+                tile.style.setProperty('--board-dark', dark);
+            });
+            if (grid._boardStyleClickAttached) return;
+            grid._boardStyleClickAttached = true;
+            grid.addEventListener('click', (e) => {
+                const tile = e.target.closest('.board-style-tile');
+                if (!tile) return;
+                const light = tile.getAttribute('data-light');
+                const dark = tile.getAttribute('data-dark');
+                if (!light || !dark) return;
+                this.colors.lightSquare = light;
+                this.colors.darkSquare = dark;
+                document.getElementById('light-square-color').value = light;
+                document.getElementById('light-square-text').value = light;
+                document.getElementById('dark-square-color').value = dark;
+                document.getElementById('dark-square-text').value = dark;
+                tiles.forEach(t => t.classList.remove('selected'));
+                tile.classList.add('selected');
+                this.applyColors();
+                this.savePreferences();
+            });
+            const light = this.colors.lightSquare || '#f0d9b5';
+            const dark = this.colors.darkSquare || '#b58863';
+            const norm = (c) => (c || '').toLowerCase().trim();
+            tiles.forEach(t => {
+                if (norm(t.getAttribute('data-light')) === norm(light) && norm(t.getAttribute('data-dark')) === norm(dark)) {
+                    t.classList.add('selected');
+                } else {
+                    t.classList.remove('selected');
+                }
+            });
+        };
+        setupBoardStyleTiles();
+        
         // Background theme selector
         const backgroundSelector = document.getElementById('background-theme-selector');
         backgroundSelector.value = this.backgroundTheme;
@@ -1766,9 +1850,12 @@ class ChessGame {
                     pieceSpan.className = 'piece-symbol';
                     square.appendChild(pieceSpan);
                 }
+                pieceSpan.className = 'piece-symbol piece-' + boardPiece.color;
                 pieceSpan.textContent = pieceSet[boardPiece.color][boardPiece.type];
+                const pieceColorValue = this.colors[boardPiece.color === 'white' ? 'whitePiece' : 'blackPiece'] || (boardPiece.color === 'white' ? '#ffffff' : '#000000');
+                pieceSpan.style.setProperty('color', pieceColorValue, 'important');
+                pieceSpan.style.setProperty('-webkit-text-fill-color', pieceColorValue, 'important');
                 
-                // Remove color filters and let pieces use their natural colors
                 square.style.removeProperty('color');
                 square.style.removeProperty('filter');
                 
@@ -1817,6 +1904,13 @@ class ChessGame {
         } else {
             body.style.animation = 'none';
         }
+        
+        // Show rain and lightning only when Rainy Storm theme is selected
+        const rainContainer = document.getElementById('rain-container');
+        const lightning = document.getElementById('lightning-effect');
+        const showRain = this.backgroundTheme === 'rainy';
+        if (rainContainer) rainContainer.style.display = showRain ? 'block' : 'none';
+        if (lightning) lightning.style.display = showRain ? 'block' : 'none';
     }
     
     savePreferences() {
@@ -1927,6 +2021,10 @@ class ChessGame {
         
         // Remove active class from all theme buttons
         document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        // Mark Classic board style as selected
+        document.querySelectorAll('.board-style-tile').forEach(t => {
+            t.classList.toggle('selected', t.getAttribute('data-light') === '#f0d9b5' && t.getAttribute('data-dark') === '#b58863');
+        });
         
         this.updateColorInputs();
         this.renderBoard();
@@ -2487,6 +2585,14 @@ class ChessGame {
     resign() {
         // Don't allow resigning if game hasn't started or is already over
         if (!this.gameStarted || this.gameOver) {
+            return;
+        }
+        
+        // In multiplayer, send resign to opponent and update both screens
+        if (this.multiplayer && this.multiplayer.roomCode && this.multiplayer.connection?.open) {
+            if (typeof window.multiplayerResign === 'function') {
+                window.multiplayerResign();
+            }
             return;
         }
         
@@ -3889,11 +3995,14 @@ class ChessGame {
         
         // Fallback to unicode if the selected piece set doesn't exist
         const pieceSet = PIECE_SETS[this.pieceSet] || PIECE_SETS['unicode'];
+        const whitePieceColor = this.colors.whitePiece || '#ffffff';
+        const blackPieceColor = this.colors.blackPiece || '#000000';
         this.capturedPieces.white.forEach(piece => {
             const span = document.createElement('span');
             span.className = 'captured-piece';
             span.textContent = pieceSet.white[piece.type];
-            span.style.color = this.colors.whitePiece;
+            span.style.setProperty('color', whitePieceColor, 'important');
+            span.style.setProperty('-webkit-text-fill-color', whitePieceColor, 'important');
             whiteCaptured.appendChild(span);
         });
         
@@ -3901,7 +4010,8 @@ class ChessGame {
             const span = document.createElement('span');
             span.className = 'captured-piece';
             span.textContent = pieceSet.black[piece.type];
-            span.style.color = this.colors.blackPiece;
+            span.style.setProperty('color', blackPieceColor, 'important');
+            span.style.setProperty('-webkit-text-fill-color', blackPieceColor, 'important');
             blackCaptured.appendChild(span);
         });
     }
@@ -3978,16 +4088,35 @@ class ChessGame {
     }
 }
 
+// Default preferences for guest / fallback auth (so any user can play)
+var GUEST_PREFERENCES = {
+    colors: {
+        lightSquare: '#f0d9b5',
+        darkSquare: '#b58863',
+        whitePiece: '#ffffff',
+        blackPiece: '#000000',
+        boardContainer: '#ffffff'
+    },
+    pieceSet: 'unicode',
+    backgroundTheme: 'rainy'
+};
+
 // Initialize the game when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Check authentication first
-    if (typeof auth !== 'undefined' && auth) {
-        if (auth.checkAuth()) {
-            // Create game and expose globally for multiplayer
-            window.chessGame = new ChessGame();
-        }
-    } else {
-        // If auth.js hasn't loaded, redirect to login
-        window.location.href = 'login.html';
+    // Ensure any visitor can play: use auth if loaded, otherwise guest fallback (no redirect to login)
+    var authToUse = (typeof auth !== 'undefined' && auth) ? auth : null;
+    if (!authToUse) {
+        window.auth = {
+            currentUser: { username: 'Guest', email: null, preferences: GUEST_PREFERENCES },
+            checkAuth: function() { return true; },
+            getCurrentUser: function() { return this.currentUser; },
+            getUserPreferences: function() { return GUEST_PREFERENCES; },
+            saveUserPreferences: function() {},
+            setCurrentUser: function() {}
+        };
+        authToUse = window.auth;
+    }
+    if (authToUse.checkAuth()) {
+        window.chessGame = new ChessGame();
     }
 });

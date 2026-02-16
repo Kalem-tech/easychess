@@ -19,24 +19,42 @@ class AuthSystem {
     }
 
     loadUsers() {
-        const stored = localStorage.getItem('chess_users');
-        return stored ? JSON.parse(stored) : {};
+        try {
+            const stored = localStorage.getItem('chess_users');
+            return stored ? JSON.parse(stored) : {};
+        } catch (e) {
+            return {};
+        }
     }
 
     saveUsers() {
-        localStorage.setItem('chess_users', JSON.stringify(this.users));
+        try {
+            localStorage.setItem('chess_users', JSON.stringify(this.users));
+            return true;
+        } catch (e) {
+            console.warn('Could not save users (e.g. private browsing):', e.message);
+            return false;
+        }
     }
 
     getCurrentUser() {
-        const user = localStorage.getItem('chess_current_user');
-        return user ? JSON.parse(user) : null;
+        try {
+            const user = localStorage.getItem('chess_current_user');
+            return user ? JSON.parse(user) : null;
+        } catch (e) {
+            return null;
+        }
     }
 
     setCurrentUser(user) {
-        if (user) {
-            localStorage.setItem('chess_current_user', JSON.stringify(user));
-        } else {
-            localStorage.removeItem('chess_current_user');
+        try {
+            if (user) {
+                localStorage.setItem('chess_current_user', JSON.stringify(user));
+            } else {
+                localStorage.removeItem('chess_current_user');
+            }
+        } catch (e) {
+            console.warn('Could not save session (e.g. private browsing):', e.message);
         }
         this.currentUser = user;
     }
@@ -50,17 +68,143 @@ class AuthSystem {
             });
         });
 
+        // Email code form (send code -> then verify code)
+        var emailForm = document.getElementById('email-form');
+        if (emailForm) {
+            emailForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.handleEmailCodeSubmit();
+            });
+        }
+
         // Login form
         document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleLogin();
         });
 
+        // Forgot password: switch to Login (email code) tab so they can sign in with code
+        var forgotBtn = document.getElementById('forgot-password-btn');
+        if (forgotBtn) {
+            forgotBtn.addEventListener('click', function() {
+                auth.switchTab('email');
+            });
+        }
+
         // Signup form
         document.getElementById('signup-form').addEventListener('submit', (e) => {
             e.preventDefault();
             this.handleSignup();
         });
+    }
+
+    getApiBase() {
+        if (typeof window !== 'undefined' && window.location && window.location.origin) {
+            return window.location.origin;
+        }
+        return '';
+    }
+
+    handleEmailCodeSubmit() {
+        var emailInput = document.getElementById('email-login');
+        var codeInput = document.getElementById('email-code');
+        var codeGroup = document.getElementById('email-code-group');
+        var submitBtn = document.getElementById('email-submit-btn');
+        var email = (emailInput && emailInput.value || '').trim().toLowerCase();
+        if (!email) {
+            this.showError('Please enter your email');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            this.showError('Please enter a valid email address');
+            return;
+        }
+
+        if (codeGroup && codeGroup.style.display === 'none') {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+            var base = this.getApiBase();
+            fetch(base + '/api/send-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            })
+                .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+                .then(function(result) {
+                    submitBtn.disabled = false;
+                    if (result.ok && result.data && !result.data.error) {
+                        codeGroup.style.display = 'block';
+                        if (codeInput) {
+                            codeInput.value = '';
+                            codeInput.focus();
+                        }
+                        submitBtn.textContent = 'Verify code and sign in';
+                        auth.showSuccess('Check your email and enter the 5-digit code.');
+                    } else {
+                        submitBtn.textContent = 'Request code from Gmail';
+                        auth.showError(result.data && result.data.error || 'Failed to send code');
+                    }
+                })
+                .catch(function(err) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Request code from Gmail';
+                    auth.showError('Network error. Try again or use Password / Sign up.');
+                });
+            return;
+        }
+
+        var code = (codeInput && codeInput.value || '').trim();
+        if (!/^\d{5}$/.test(code)) {
+            this.showError('Please enter the 5-digit code from your email');
+            return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Verifying...';
+        var self = this;
+        var base = this.getApiBase();
+        fetch(base + '/api/verify-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: email, code: code })
+        })
+            .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+            .then(function(result) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Verify code and sign in';
+                if (result.ok && result.data && result.data.success) {
+                    var user = {
+                        username: result.data.email || email,
+                        email: email,
+                        preferences: {
+                            colors: {
+                                lightSquare: '#f0d9b5',
+                                darkSquare: '#b58863',
+                                whitePiece: '#ffffff',
+                                blackPiece: '#000000',
+                                boardContainer: '#ffffff'
+                            },
+                            pieceSet: 'unicode',
+                            backgroundTheme: 'rainy'
+                        }
+                    };
+                    if (self.users[email]) {
+                        user.preferences = self.users[email].preferences || user.preferences;
+                    } else {
+                        self.users[email] = { email: email, preferences: user.preferences, createdAt: new Date().toISOString() };
+                        self.saveUsers();
+                    }
+                    self.setCurrentUser(user);
+                    self.showSuccess('Signed in! Redirecting...');
+                    setTimeout(function() { window.location.href = 'index.html'; }, 500);
+                } else {
+                    self.showError(result.data && result.data.error || 'Invalid or expired code');
+                }
+            })
+            .catch(function(err) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Verify code and sign in';
+                auth.showError('Network error. Try again.');
+            });
     }
 
     switchTab(tabName) {
@@ -76,7 +220,17 @@ class AuthSystem {
         document.querySelectorAll('.auth-form').forEach(form => {
             form.classList.remove('active');
         });
-        document.getElementById(`${tabName}-form`).classList.add('active');
+        var formEl = document.getElementById(tabName + '-form');
+        if (formEl) formEl.classList.add('active');
+
+        // Reset email-code form when switching away
+        var codeGroup = document.getElementById('email-code-group');
+        var emailSubmitBtn = document.getElementById('email-submit-btn');
+        if (codeGroup) codeGroup.style.display = 'none';
+        if (emailSubmitBtn) {
+            emailSubmitBtn.textContent = 'Request code from Gmail';
+            emailSubmitBtn.disabled = false;
+        }
 
         // Clear messages
         this.hideMessages();
@@ -159,7 +313,10 @@ class AuthSystem {
         };
 
         this.users[username] = user;
-        this.saveUsers();
+        if (!this.saveUsers()) {
+            this.showError('Could not save account. Try turning off private browsing or allow site storage.');
+            return;
+        }
 
         // Auto-login after signup and redirect to chess board
         this.setCurrentUser({
@@ -183,10 +340,6 @@ class AuthSystem {
             return;
         }
 
-        // Debug: Log all users (remove in production)
-        console.log('All users:', this.users);
-        console.log('Searching for:', usernameOrEmail);
-
         // Try to find user by username first
         let user = this.users[usernameOrEmail];
 
@@ -197,7 +350,6 @@ class AuthSystem {
             user = Object.values(this.users).find(u => {
                 if (u.email) {
                     const userEmail = u.email.toLowerCase().trim();
-                    console.log('Comparing:', userEmail, 'with', searchEmail);
                     return userEmail === searchEmail;
                 }
                 return false;
@@ -210,17 +362,12 @@ class AuthSystem {
             if (userCount === 0) {
                 this.showError('No accounts found. Please sign up first.');
             } else {
-                this.showError(`Invalid username/email or password. Found ${userCount} user(s) in system.`);
+                this.showError('Invalid username/email or password.');
             }
-            console.error('User not found. Available users:', Object.keys(this.users).map(u => ({
-                username: u,
-                email: this.users[u].email
-            })));
             return;
         }
 
         const hashedPassword = this.hashPassword(password);
-        console.log('Password check:', user.password, '===', hashedPassword);
 
         if (user.password !== hashedPassword) {
             this.showError('Invalid username/email or password');

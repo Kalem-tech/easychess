@@ -42,9 +42,10 @@ function setup() {
         window.history.replaceState({}, '', window.location.pathname);
     }
     
-    // Expose for chess.js
+    // Expose for chess.js (connection getter so resign/move checks can see MP.connection)
     window.chessGame.multiplayer = {
         get roomCode() { return MP.roomCode; },
+        get connection() { return MP.connection; },
         get playerColor() { return MP.myColor; },
         get isHost() { return MP.isHost; },
         onMoveMade: sendMove,
@@ -73,12 +74,14 @@ function createRoom() {
     }
     
     const name = document.getElementById('white-player-name')?.value || 'Player 1';
-    const chosenColor = document.getElementById('create-color-select')?.value || 'white';
+    // Read host's chosen color from the "Play as" dropdown in the Create Room section
+    const colorSelect = document.getElementById('create-color-select');
+    const chosenColor = (colorSelect && colorSelect.value === 'black') ? 'black' : 'white';
     
     showMsg('Creating room...');
     
     const roomCode = generateRoomCode();
-    console.log('🎮 Creating room:', roomCode);
+    console.log('🎮 Creating room:', roomCode, '| Host color:', chosenColor);
     
     try {
         // Create peer with room code as ID
@@ -99,6 +102,13 @@ function createRoom() {
             MP.isHost = true;
             MP.gameStarted = false;
             
+            // Sync chess game to host's chosen color: flip board and set player color
+            if (window.chessGame) {
+                window.chessGame.setPlayerColor(chosenColor);
+                localStorage.setItem('playerColor', chosenColor);
+                const boardColorSelect = document.getElementById('player-color-select');
+                if (boardColorSelect) boardColorSelect.value = chosenColor;
+            }
             if (chosenColor === 'black') {
                 flipBoard();
             }
@@ -360,6 +370,14 @@ function handleWelcome(data) {
     MP.myColor = data.yourColor;
     MP.opponentConnected = true;
     
+    // Ensure each player sees their own pieces at the BOTTOM:
+    // White → default orientation (White at bottom). Black → flipped (Black at bottom).
+    if (window.chessGame) {
+        window.chessGame.setPlayerColor(MP.myColor);
+        localStorage.setItem('playerColor', MP.myColor);
+        const boardColorSelect = document.getElementById('player-color-select');
+        if (boardColorSelect) boardColorSelect.value = MP.myColor;
+    }
     if (MP.myColor === 'black') {
         flipBoard();
     }
@@ -561,12 +579,24 @@ function cleanup() {
 
 // ========== HANDLE RESIGN ==========
 function handleResign() {
-    const game = window.chessGame;
-    game.gameOver = true;
-    game.winner = MP.myColor;
+    const statusEl = document.getElementById('game-status');
+    if (statusEl) {
+        statusEl.textContent = 'Opponent resigned! You win!';
+        statusEl.style.color = '#4CAF50';
+        statusEl.style.fontWeight = 'bold';
+    }
+    const turnEl = document.getElementById('current-turn');
+    if (turnEl) turnEl.textContent = 'Game Over – You win!';
     showMsg('Opponent resigned! You win!');
-    game.updateGameInfo();
-    game.updateReviewButtonVisibility();
+
+    const game = window.chessGame;
+    if (game) {
+        game.stopTimer();
+        game.gameOver = true;
+        game.winner = MP.myColor;
+        game.updateGameInfo();
+        game.updateReviewButtonVisibility();
+    }
 }
 
 // ========== HANDLE DRAW OFFER ==========
@@ -693,12 +723,28 @@ function copyInvite() {
 
 // ========== EXPOSE FOR UI ==========
 window.multiplayerResign = function() {
-    if (MP.connection?.open) {
-        MP.connection.send({ type: 'resign' });
-        const game = window.chessGame;
+    if (!MP.connection || !MP.connection.open) return;
+    var payload = { type: 'resign' };
+    MP.connection.send(payload);
+    // Send again after a short delay so opponent is more likely to receive it
+    setTimeout(function() {
+        if (MP.connection && MP.connection.open) MP.connection.send(payload);
+    }, 150);
+    var game = window.chessGame;
+    if (game) {
+        game.stopTimer();
         game.gameOver = true;
         game.winner = MP.myColor === 'white' ? 'black' : 'white';
-        showMsg('You resigned');
+    }
+    var statusEl = document.getElementById('game-status');
+    if (statusEl) {
+        statusEl.textContent = 'You resigned. Opponent wins!';
+        statusEl.style.color = '#666';
+        statusEl.style.fontWeight = 'bold';
+    }
+    var turnEl = document.getElementById('current-turn');
+    if (turnEl) turnEl.textContent = 'Game Over – You resigned';
+    if (game) {
         game.updateGameInfo();
         game.updateReviewButtonVisibility();
     }

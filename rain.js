@@ -10,11 +10,12 @@
     const windAngle = -8; // Degrees (negative = wind from right)
     const windStrength = Math.random() * 15 + 10; // Variable wind
 
-    // Add lightning effect
+    // Add lightning effect (inside rain container so it hides with rain when theme changes)
     function createLightning() {
         const lightning = document.createElement('div');
         lightning.className = 'lightning';
-        document.body.appendChild(lightning);
+        lightning.id = 'lightning-effect';
+        rainContainer.appendChild(lightning);
         
         // Random lightning strikes with more variation
         setInterval(() => {
@@ -68,19 +69,21 @@
         raindrop.style.width = width + 'px';
         raindrop.style.height = height + 'px';
         
-        // Random horizontal position
+        // Spawn at random vertical positions so rain feels natural (not all from one line at top)
+        // Range: above viewport to below so drops appear mid-fall and at different heights
+        const startTop = (Math.random() * 140 - 25); // -25vh to 115vh
+        raindrop.style.top = startTop + 'vh';
         const left = Math.random() * 100;
         raindrop.style.left = left + '%';
         
         // Realistic animation duration (faster = more realistic)
-        // Larger drops fall faster
         const baseSpeed = height < 15 ? 0.4 : height > 25 ? 0.2 : 0.3;
         const duration = baseSpeed + Math.random() * 0.3;
         raindrop.style.animationDuration = duration + 's';
         
-        // Random delay for continuous effect
-        const delay = Math.random() * 2;
-        raindrop.style.animationDelay = delay + 's';
+        // Random delay so drops are at different phases (some already falling when they appear)
+        const delay = Math.random() * (duration * 0.9); // 0 to ~90% of duration
+        raindrop.style.animationDelay = '-' + delay + 's'; // negative = start mid-animation
         
         // Realistic opacity (larger drops more visible)
         const opacity = height > 25 ? 0.7 + Math.random() * 0.2 : 
@@ -100,8 +103,8 @@
         rainContainer.appendChild(raindrop);
         raindrops.push(raindrop);
         
-        // Remove raindrop after animation and create new one
-        const totalTime = (duration + delay) * 1000;
+        // Remove after one full animation cycle and spawn a new drop (delay is negative = phase offset)
+        const totalTime = duration * 1000;
         setTimeout(() => {
             if (raindrop.parentNode) {
                 raindrop.parentNode.removeChild(raindrop);

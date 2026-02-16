@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <!-- Safari / iOS / cross-browser compatibility -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
     <!-- Primary Meta Tags -->
     <title>Chess Game - Play Online Chess with Custom Themes</title>
@@ -48,7 +55,6 @@
     <link rel="dns-prefetch" href="https://unpkg.com">
 </head>
 <body>
-    <div class="cloud-container" id="cloud-container"></div>
     <div class="rain-container" id="rain-container"></div>
     <div class="container">
         <header>
@@ -172,6 +178,7 @@
                         </div>
                         <div class="board-controls">
                             <button id="start-game-btn" class="start-game-btn">Start Game</button>
+                            <button id="lessons-btn" class="btn btn-secondary lessons-btn" title="Learn chess">📚 Lessons</button>
                             <button id="draw-btn" class="btn btn-secondary draw-btn">Draw</button>
                             <button id="resign-btn" class="btn btn-secondary resign-btn">Resign</button>
                             <button id="review-btn" class="btn btn-primary review-btn" style="display: none;">📖 Review Game</button>
@@ -332,6 +339,37 @@
                     
                     <div class="customization">
                         <h3>Customize Colors</h3>
+                        <div class="board-style-section">
+                            <h4>Board Style</h4>
+                            <p class="board-style-hint">Click a board to apply it</p>
+                            <div class="board-style-grid" id="board-style-grid">
+                                <button type="button" class="board-style-tile" data-light="#f0d9b5" data-dark="#b58863" title="Classic"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#a8d5e2" data-dark="#4a90a4" title="Ocean"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#c8d5b9" data-dark="#6b8e5a" title="Forest"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#ffd4a3" data-dark="#ff8c5a" title="Sunset"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#e0e0e0" data-dark="#606060" title="Monochrome"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#e8e0c8" data-dark="#7d6b4a" title="Walnut"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#d4b896" data-dark="#8b6914" title="Maple"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#c4a574" data-dark="#5c4033" title="Mahogany"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#b0a090" data-dark="#4a4035" title="Ebony"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#e8e4d9" data-dark="#9a8f7f" title="Sand"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#a0c4e8" data-dark="#2c5282" title="Blue"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#c8e6c9" data-dark="#388e3c" title="Green"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#f8bbd0" data-dark="#c2185b" title="Rose"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#d1c4e9" data-dark="#512da8" title="Purple"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#ffcc80" data-dark="#e65100" title="Orange"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#b0bec5" data-dark="#455a64" title="Slate"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#cfd8dc" data-dark="#546e7a" title="Stone"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#90a4ae" data-dark="#263238" title="Graphite"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#eceff1" data-dark="#37474f" title="Marble"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#ef5350" data-dark="#1a0000" title="Red & Black"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#fff8e1" data-dark="#ff8f00" title="Amber"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#e1f5fe" data-dark="#01579b" title="Ice"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#fce4ec" data-dark="#880e4f" title="Blush"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#f3e5f5" data-dark="#4a148c" title="Lavender"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                                <button type="button" class="board-style-tile" data-light="#e8f5e9" data-dark="#1b5e20" title="Mint"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                            </div>
+                        </div>
                         <div class="color-controls">
                             <div class="color-control-group">
                                 <label for="light-square-color">Light Square</label>
@@ -347,18 +385,22 @@
                                     <input type="text" id="dark-square-text" value="#b58863" class="color-text-input">
                                 </div>
                             </div>
-                            <div class="color-control-group">
-                                <label for="white-piece-color">White Pieces</label>
-                                <div class="color-input-group">
-                                    <input type="color" id="white-piece-color" value="#ffffff">
-                                    <input type="text" id="white-piece-text" value="#ffffff" class="color-text-input">
+                            <div class="piece-colors-section">
+                                <h4>Piece colors</h4>
+                                <p class="piece-colors-hint">Customize the color of white and black pieces on the board.</p>
+                                <div class="color-control-group">
+                                    <label for="white-piece-color">White pieces</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="white-piece-color" value="#ffffff" title="White pieces color">
+                                        <input type="text" id="white-piece-text" value="#ffffff" class="color-text-input" placeholder="#ffffff">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="color-control-group">
-                                <label for="black-piece-color">Black Pieces</label>
-                                <div class="color-input-group">
-                                    <input type="color" id="black-piece-color" value="#000000">
-                                    <input type="text" id="black-piece-text" value="#000000" class="color-text-input">
+                                <div class="color-control-group">
+                                    <label for="black-piece-color">Black pieces</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="black-piece-color" value="#000000" title="Black pieces color">
+                                        <input type="text" id="black-piece-text" value="#000000" class="color-text-input" placeholder="#000000">
+                                    </div>
                                 </div>
                             </div>
                             <div class="color-control-group">
@@ -491,6 +533,70 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Lessons Modal -->
+        <div id="lessons-modal" class="lessons-modal">
+            <div class="lessons-modal-content">
+                <div class="lessons-modal-header">
+                    <h2>📚 Chess Lessons</h2>
+                    <button class="lessons-close-btn" id="lessons-close-btn" aria-label="Close">&times;</button>
+                </div>
+                <div class="lessons-modal-body">
+                    <nav class="lessons-nav">
+                        <button class="lesson-tab active" data-lesson="board">The Board</button>
+                        <button class="lesson-tab" data-lesson="pieces">How Pieces Move</button>
+                        <button class="lesson-tab" data-lesson="special">Special Moves</button>
+                        <button class="lesson-tab" data-lesson="check">Check & Checkmate</button>
+                        <button class="lesson-tab" data-lesson="tips">Opening Tips</button>
+                    </nav>
+                    <div class="lessons-content">
+                        <article id="lesson-board" class="lesson-panel active">
+                            <h3>The Board</h3>
+                            <p>Chess is played on an 8×8 board. Each player starts with 16 pieces: one king, one queen, two rooks, two bishops, two knights, and eight pawns.</p>
+                            <p><strong>Ranks</strong> are the horizontal rows (1–8). <strong>Files</strong> are the vertical columns (a–h). The board is set up so each player has a light square on their right.</p>
+                            <p>White always moves first. The goal is to checkmate your opponent’s king.</p>
+                        </article>
+                        <article id="lesson-pieces" class="lesson-panel">
+                            <h3>How the Pieces Move</h3>
+                            <ul class="lesson-list">
+                                <li><strong>King ♔</strong> — One square in any direction. Must never move into check.</li>
+                                <li><strong>Queen ♕</strong> — Any number of squares in any direction (rank, file, or diagonal).</li>
+                                <li><strong>Rook ♖</strong> — Any number of squares along a rank or file (horizontally or vertically).</li>
+                                <li><strong>Bishop ♗</strong> — Any number of squares along a diagonal. Stays on the same color.</li>
+                                <li><strong>Knight ♘</strong> — Moves in an “L”: two squares in one direction, then one square perpendicular. It jumps over other pieces.</li>
+                                <li><strong>Pawn ♙</strong> — One square forward (or two from the starting row). Captures one square diagonally forward. Does not capture straight ahead.</li>
+                            </ul>
+                        </article>
+                        <article id="lesson-special" class="lesson-panel">
+                            <h3>Special Moves</h3>
+                            <ul class="lesson-list">
+                                <li><strong>Castling</strong> — Move the king two squares toward a rook, then move that rook to the square the king crossed. You can’t castle out of, through, or into check, or if the king or that rook has already moved.</li>
+                                <li><strong>En passant</strong> — When a pawn moves two squares and lands beside your pawn, you may capture it “in passing” as if it had moved only one square (on your next move only).</li>
+                                <li><strong>Promotion</strong> — When a pawn reaches the opposite end of the board, it becomes a queen, rook, bishop, or knight (almost always a queen).</li>
+                            </ul>
+                        </article>
+                        <article id="lesson-check" class="lesson-panel">
+                            <h3>Check and Checkmate</h3>
+                            <p><strong>Check</strong> — Your king is under attack. You must get out of check on your next move (move the king, block, or capture the attacking piece).</p>
+                            <p><strong>Checkmate</strong> — The king is in check and has no legal move to escape. The game ends; the side that delivered checkmate wins.</p>
+                            <p><strong>Stalemate</strong> — It’s your turn, your king is not in check, but you have no legal move. The game is a draw.</p>
+                        </article>
+                        <article id="lesson-tips" class="lesson-panel">
+                            <h3>Opening Tips</h3>
+                            <ul class="lesson-list">
+                                <li>Control the center (e4, d4, e5, d5 and the squares around them).</li>
+                                <li>Develop your pieces (knights and bishops) early; avoid moving the same piece too many times.</li>
+                                <li>Castle to keep your king safer and connect your rooks.</li>
+                                <li>Don’t bring the queen out too early; she can be chased by enemy pieces.</li>
+                                <li>Connect your rooks and try to activate them on open files.</li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         </main>
     </div>
 
