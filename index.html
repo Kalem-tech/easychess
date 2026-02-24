@@ -59,6 +59,10 @@
         <span class="viewer-banner-icon" aria-hidden="true">👁️</span>
         <span id="viewer-count" class="viewer-count">--</span>
         <span class="viewer-banner-label">viewers now</span>
+        <span class="viewer-banner-sep" aria-hidden="true">·</span>
+        <span class="viewer-banner-icon" aria-hidden="true">♟️</span>
+        <span id="players-count" class="viewer-count">--</span>
+        <span class="viewer-banner-label">playing now</span>
     </div>
     <div class="rain-container" id="rain-container"></div>
     <div class="container">
@@ -671,30 +675,49 @@
         });
     </script>
     
-    <!-- Viewer count banner: set window.VIEWER_COUNT_URL to your API (e.g. /api/viewers) that returns { count: number } -->
+    <!-- Banner: set window.VIEWER_COUNT_URL (returns { count: number } or { count, players }) and/or window.PLAYERS_COUNT_URL (returns { count: number }) -->
     <script>
         (function() {
-            var el = document.getElementById('viewer-count');
-            if (!el) return;
-            function setCount(n) {
-                el.textContent = typeof n === 'number' && !isNaN(n) ? n : '0';
+            var viewerEl = document.getElementById('viewer-count');
+            var playersEl = document.getElementById('players-count');
+            function setViewerCount(n) {
+                if (viewerEl) viewerEl.textContent = typeof n === 'number' && !isNaN(n) ? n : '0';
+            }
+            function setPlayersCount(n) {
+                if (playersEl) playersEl.textContent = typeof n === 'number' && !isNaN(n) ? n : '0';
             }
             function fetchViewers() {
                 var url = window.VIEWER_COUNT_URL;
                 if (!url) {
-                    setCount(0);
+                    setViewerCount(0);
                     return;
                 }
                 fetch(url).then(function(r) { return r.json(); }).then(function(data) {
-                    setCount(data.count != null ? data.count : data);
+                    setViewerCount(data.count != null ? data.count : data);
+                    if (data.players != null) setPlayersCount(data.players);
                 }).catch(function() {
-                    setCount(0);
+                    setViewerCount(0);
                 });
             }
-            setCount(0);
+            function fetchPlayers() {
+                var url = window.PLAYERS_COUNT_URL;
+                if (!url) return;
+                fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+                    var n = data.count != null ? data.count : data;
+                    setPlayersCount(typeof n === 'number' && !isNaN(n) ? n : 0);
+                }).catch(function() {
+                    setPlayersCount(0);
+                });
+            }
+            setViewerCount(0);
+            setPlayersCount(0);
             if (window.VIEWER_COUNT_URL) {
                 fetchViewers();
                 setInterval(fetchViewers, 10000);
+            }
+            if (window.PLAYERS_COUNT_URL) {
+                fetchPlayers();
+                setInterval(fetchPlayers, 10000);
             }
         })();
     </script>

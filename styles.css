@@ -38,6 +38,12 @@
     opacity: 0.95;
 }
 
+.viewer-banner-sep {
+    opacity: 0.7;
+    margin: 0 4px;
+    user-select: none;
+}
+
 /* Cross-browser / Safari compatibility */
 html {
     -webkit-text-size-adjust: 100%;
