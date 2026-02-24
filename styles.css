@@ -4,6 +4,40 @@
     box-sizing: border-box;
 }
 
+/* Viewer count banner at top of screen - fixed so it's always visible */
+.viewer-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px 16px;
+    padding-top: max(10px, env(safe-area-inset-top, 0px));
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.98) 0%, rgba(118, 75, 162, 0.98) 100%);
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    z-index: 10000;
+}
+
+.viewer-banner-icon {
+    font-size: 1rem;
+}
+
+.viewer-count {
+    font-variant-numeric: tabular-nums;
+    min-width: 1.5em;
+}
+
+.viewer-banner-label {
+    opacity: 0.95;
+}
+
 /* Cross-browser / Safari compatibility */
 html {
     -webkit-text-size-adjust: 100%;
@@ -14,10 +48,12 @@ body {
     min-height: 100vh;
     min-height: -webkit-fill-available;
     padding: 20px;
+    /* Space for fixed viewer banner at top (~48px) */
+    padding-top: 52px;
 }
 @supports (padding: max(0px)) {
     body {
-        padding-top: max(20px, env(safe-area-inset-top, 0px));
+        padding-top: max(52px, calc(env(safe-area-inset-top, 0px) + 48px));
         padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
         padding-left: max(20px, env(safe-area-inset-left, 0px));
         padding-right: max(20px, env(safe-area-inset-right, 0px));
@@ -543,6 +579,30 @@ header h1 {
     font-size: 1.2rem;
 }
 
+.lesson-video-intro {
+    margin-bottom: 16px;
+}
+
+.lesson-video-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 16 / 9;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #111;
+}
+
+.lesson-video-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
 .lesson-panel p,
 .lesson-panel ul {
     margin: 0 0 12px 0;
@@ -758,6 +818,40 @@ header h1 {
     align-items: flex-start;
     gap: 15px;
     position: relative;
+}
+
+.game-type-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    width: 150px;
+}
+
+.game-type-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.game-type-select {
+    width: 100%;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 2px solid rgba(102, 126, 234, 0.5);
+    background: rgba(255, 255, 255, 0.95);
+    color: #333;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.game-type-select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.game-type-select:hover {
+    border-color: #667eea;
 }
 
 .board-controls {
@@ -1165,9 +1259,23 @@ header h1 {
     width: 560px;
     height: 560px;
     border: 3px solid #333;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    position: relative;
-    transition: transform 0.5s ease;
+}
+
+.chessboard.board-9x9 {
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    width: 504px;
+    height: 504px;
+}
+
+.chessboard.board-9x9 .square {
+    width: 56px;
+    height: 56px;
+    font-size: 44px;
+}
+
+.chessboard.board-9x9 .piece-symbol {
+    font-size: 44px;
 }
 
 /* Counter-rotate pieces when board is flipped so they stay upright */
@@ -1393,12 +1501,40 @@ header h1 {
     pointer-events: none;
 }
 
+/* Animated piece overlay (piece slides from source to target square) */
+.piece-moving-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.piece-moving-overlay .piece-moving {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    line-height: 1;
+    z-index: 101;
+    will-change: transform;
+}
+
 /* Slight tint so white vs black are distinct when using same symbol; keep subtle so custom piece colors show */
 .piece-symbol.piece-white {
     filter: brightness(1.08) contrast(1.02);
 }
 .piece-symbol.piece-black {
     filter: brightness(0.92) contrast(1.05);
+}
+.piece-symbol.piece-red {
+    filter: brightness(1.05) contrast(1.02);
+}
+.piece-symbol.piece-green {
+    filter: brightness(1.05) contrast(1.02);
 }
 
 #chess-tooltip {

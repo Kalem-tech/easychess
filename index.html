@@ -55,6 +55,11 @@
     <link rel="dns-prefetch" href="https://unpkg.com">
 </head>
 <body>
+    <div id="viewer-banner" class="viewer-banner" aria-live="polite">
+        <span class="viewer-banner-icon" aria-hidden="true">👁️</span>
+        <span id="viewer-count" class="viewer-count">--</span>
+        <span class="viewer-banner-label">viewers now</span>
+    </div>
     <div class="rain-container" id="rain-container"></div>
     <div class="container">
         <header>
@@ -175,6 +180,16 @@
                                     <span class="profile-button-icon">👤</span>
                                 </button>
                             </div>
+                        </div>
+                        <div class="game-type-section">
+                            <label for="game-type-select" class="game-type-label">Game type</label>
+                            <select id="game-type-select" class="game-type-select" title="Choose chess variant">
+                                <option value="standard">Standard Chess</option>
+                                <option value="chess960">Chess960 (Fischer Random)</option>
+                                <option value="threeCheck">3-Check (first to give 3 checks wins)</option>
+                                <option value="kingOfTheHill">King of the Hill (king to center wins)</option>
+                                <option value="fourPlayer">Four-Player Chess (last king standing)</option>
+                            </select>
                         </div>
                         <div class="board-controls">
                             <button id="start-game-btn" class="start-game-btn">Start Game</button>
@@ -484,6 +499,10 @@
                                         <option value="unicode">Unicode Symbols</option>
                                         <option value="letters">Letter Notation</option>
                                         <option value="bold">Bold Unicode</option>
+                                        <option value="italic">Italic Letters</option>
+                                        <option value="serif">Sans Serif</option>
+                                        <option value="outline">Outline Shapes</option>
+                                        <option value="minimal">Minimal</option>
                                         <option value="circles">Circle Symbols</option>
                                         <option value="squares">Square Symbols</option>
                                         <option value="simple">Simple Shapes</option>
@@ -502,6 +521,19 @@
                                         <option value="ocean">Ocean Life</option>
                                         <option value="forest">Forest</option>
                                         <option value="space">Space</option>
+                                    </optgroup>
+                                    <optgroup label="Animals">
+                                        <option value="dinosaurs">Dinosaurs</option>
+                                        <option value="cats">Cats</option>
+                                        <option value="birds">Birds</option>
+                                    </optgroup>
+                                    <optgroup label="Themes">
+                                        <option value="medieval">Medieval</option>
+                                        <option value="tech">Tech</option>
+                                        <option value="fantasy">Fantasy</option>
+                                        <option value="travel">Travel</option>
+                                        <option value="art">Art & Design</option>
+                                        <option value="science">Science</option>
                                     </optgroup>
                                     <optgroup label="Holidays">
                                         <option value="christmas">Christmas</option>
@@ -544,14 +576,22 @@
                 </div>
                 <div class="lessons-modal-body">
                     <nav class="lessons-nav">
-                        <button class="lesson-tab active" data-lesson="board">The Board</button>
+                        <button class="lesson-tab active" data-lesson="video">Watch Video</button>
+                        <button class="lesson-tab" data-lesson="board">The Board</button>
                         <button class="lesson-tab" data-lesson="pieces">How Pieces Move</button>
                         <button class="lesson-tab" data-lesson="special">Special Moves</button>
                         <button class="lesson-tab" data-lesson="check">Check & Checkmate</button>
                         <button class="lesson-tab" data-lesson="tips">Opening Tips</button>
                     </nav>
                     <div class="lessons-content">
-                        <article id="lesson-board" class="lesson-panel active">
+                        <article id="lesson-video" class="lesson-panel active">
+                            <h3>How to Play Chess — Video Lesson</h3>
+                            <p class="lesson-video-intro">Watch this short guide to learn the rules, how the board is set up, and how each piece moves.</p>
+                            <div class="lesson-video-wrapper">
+                                <iframe src="https://www.youtube.com/embed/ExS7FVlpPIw?rel=0" title="How to Play Chess - Rules and Piece Movement" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                        </article>
+                        <article id="lesson-board" class="lesson-panel">
                             <h3>The Board</h3>
                             <p>Chess is played on an 8×8 board. Each player starts with 16 pieces: one king, one queen, two rooks, two bishops, two knights, and eight pawns.</p>
                             <p><strong>Ranks</strong> are the horizontal rows (1–8). <strong>Files</strong> are the vertical columns (a–h). The board is set up so each player has a light square on their right.</p>
@@ -629,6 +669,34 @@
                 }
             });
         });
+    </script>
+    
+    <!-- Viewer count banner: set window.VIEWER_COUNT_URL to your API (e.g. /api/viewers) that returns { count: number } -->
+    <script>
+        (function() {
+            var el = document.getElementById('viewer-count');
+            if (!el) return;
+            function setCount(n) {
+                el.textContent = typeof n === 'number' && !isNaN(n) ? n : '0';
+            }
+            function fetchViewers() {
+                var url = window.VIEWER_COUNT_URL;
+                if (!url) {
+                    setCount(0);
+                    return;
+                }
+                fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+                    setCount(data.count != null ? data.count : data);
+                }).catch(function() {
+                    setCount(0);
+                });
+            }
+            setCount(0);
+            if (window.VIEWER_COUNT_URL) {
+                fetchViewers();
+                setInterval(fetchViewers, 10000);
+            }
+        })();
     </script>
     
     <!-- Main Application Scripts -->
