@@ -569,7 +569,7 @@ class ChessGame {
                 board[7][col] = { type: backRow[col], color: 'white' };
             }
         } else if (v === 'fourPlayer') {
-            // 9×9 four-player board matching standard layout: North (Red), South (White), West (Green), East (Black)
+            // 9×9 four-player board: North (Red), South (White), West (Green), East (Black); skip col b on back ranks, shared corners
             // Back ranks skip column b (index 7); North/South have 4 pawns each; corners shared with Green/Black
             const nine = Array(9).fill(null).map(() => Array(9).fill(null));
             const northBack = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'];
