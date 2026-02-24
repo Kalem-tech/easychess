@@ -12,7 +12,9 @@ const MP = {
     isHost: false,
     gameStarted: false,
     opponentConnected: false,
-    connectionTimeout: null
+    connectionTimeout: null,
+    whitePlayerName: '',
+    blackPlayerName: ''
 };
 
 // ========== INIT ==========
@@ -42,6 +44,9 @@ function setup() {
         window.history.replaceState({}, '', window.location.pathname);
     }
     
+    document.getElementById('lobby-start-btn')?.addEventListener('click', onLobbyStartClick);
+    document.getElementById('lobby-leave-btn')?.addEventListener('click', leaveRoom);
+    
     // Expose for chess.js (connection getter so resign/move checks can see MP.connection)
     window.chessGame.multiplayer = {
         get roomCode() { return MP.roomCode; },
@@ -67,7 +72,8 @@ function generateRoomCode() {
 }
 
 // ========== CREATE ROOM (HOST) ==========
-function createRoom() {
+// Optional onCreated(roomCode, inviteLink) - when provided, called instead of alert (e.g. for Friends "Invite to game")
+function createRoom(onCreated) {
     // Clean up any existing connection
     if (MP.peer) {
         MP.peer.destroy();
@@ -116,7 +122,12 @@ function createRoom() {
             updateUI();
             showMsg('Room created! Waiting for opponent...');
             
-            alert(`Room Created!\n\nRoom Code: ${roomCode}\n\nYou are playing as ${chosenColor.toUpperCase()}\n\nShare this code with your friend!`);
+            const inviteLink = (window.location.origin || '') + (window.location.pathname || '/') + '?join=' + roomCode;
+            if (typeof onCreated === 'function') {
+                onCreated(roomCode, inviteLink);
+            } else {
+                alert(`Room Created!\n\nRoom Code: ${roomCode}\n\nYou are playing as ${chosenColor.toUpperCase()}\n\nShare this code with your friend!`);
+            }
         });
         
         MP.peer.on('connection', (conn) => {
@@ -300,6 +311,7 @@ function handleMessage(data) {
             break;
         case 'gameStart':
             console.log('🎮 Received gameStart message!');
+            hideLobby();
             startGame();
             break;
         case 'sync':
@@ -325,43 +337,33 @@ function handlePlayerJoined(data) {
     MP.opponentConnected = true;
     
     const opponentColor = MP.myColor === 'white' ? 'black' : 'white';
+    const hostName = (MP.myColor === 'white')
+        ? (document.getElementById('white-player-name')?.value?.trim() || 'Player 1')
+        : (document.getElementById('black-player-name')?.value?.trim() || 'Player 2');
+    const joinerName = (data.playerName && data.playerName.trim()) ? data.playerName.trim() : (opponentColor === 'white' ? 'Player 1' : 'Player 2');
+    MP.whitePlayerName = MP.myColor === 'white' ? hostName : joinerName;
+    MP.blackPlayerName = MP.myColor === 'black' ? hostName : joinerName;
     
-    // Send welcome message
     if (MP.connection && MP.connection.open) {
         MP.connection.send({
             type: 'welcome',
             yourColor: opponentColor,
-            hostColor: MP.myColor
+            hostColor: MP.myColor,
+            whitePlayerName: MP.whitePlayerName,
+            blackPlayerName: MP.blackPlayerName
         });
         console.log('📤 Sent welcome, assigned color:', opponentColor);
     }
     
     updateUI();
-    showMsg('Opponent joined! Waiting for ready...');
+    showLobby(true);
+    showMsg('Opponent joined! Start when ready.');
 }
 
 // ========== HOST: JOINER IS READY ==========
 function handleJoinerReady() {
     console.log('✅ Joiner is ready!');
-    showMsg('Starting game...');
-    
-    // Start game on host
-    startGame();
-    
-    // Send gameStart to guest with a small delay to ensure it's received
-    setTimeout(() => {
-        if (MP.connection && MP.connection.open) {
-            console.log('📤 Sending gameStart to guest');
-            MP.connection.send({ type: 'gameStart' });
-            
-            // Send it again after a short delay for reliability
-            setTimeout(() => {
-                if (MP.connection && MP.connection.open) {
-                    MP.connection.send({ type: 'gameStart' });
-                }
-            }, 500);
-        }
-    }, 100);
+    setLobbyMessage('Opponent is ready! Click Start when you\'re ready.');
 }
 
 // ========== GUEST: RECEIVED WELCOME ==========
@@ -369,9 +371,9 @@ function handleWelcome(data) {
     console.log('🎮 Received welcome, my color:', data.yourColor);
     MP.myColor = data.yourColor;
     MP.opponentConnected = true;
+    if (data.whitePlayerName) MP.whitePlayerName = data.whitePlayerName;
+    if (data.blackPlayerName) MP.blackPlayerName = data.blackPlayerName;
     
-    // Ensure each player sees their own pieces at the BOTTOM:
-    // White → default orientation (White at bottom). Black → flipped (Black at bottom).
     if (window.chessGame) {
         window.chessGame.setPlayerColor(MP.myColor);
         localStorage.setItem('playerColor', MP.myColor);
@@ -383,18 +385,12 @@ function handleWelcome(data) {
     }
     
     updateUI();
-    showMsg('You are ' + MP.myColor.toUpperCase() + '! Game starting...');
+    showMsg('You are ' + MP.myColor.toUpperCase() + '. Waiting for host to start.');
+    showLobby(false);
     
-    // Send ready FIRST (before showing alert which blocks)
     if (MP.connection && MP.connection.open) {
-        console.log('📤 Sending ready to host');
         MP.connection.send({ type: 'ready' });
     }
-    
-    // Use setTimeout to show alert without blocking message handling
-    setTimeout(() => {
-        alert('Joined game!\n\nYou are playing as ' + MP.myColor.toUpperCase() + '\n\nGame is starting!');
-    }, 100);
 }
 
 // ========== START GAME ==========
@@ -419,6 +415,7 @@ function startGame() {
     
     console.log('🎮 STARTING GAME! Playing as:', MP.myColor);
     
+    hideLobby();
     MP.gameStarted = true;
     window.chessGame.gameStarted = true;
     window.chessGame.currentPlayer = 'white';
@@ -553,6 +550,7 @@ function leaveRoom() {
         window.chessGame.boardFlipped = false;
     }
     
+    hideLobby();
     window.chessGame.resetGame();
     updateUI();
     showMsg('Left room');
@@ -560,14 +558,13 @@ function leaveRoom() {
 
 function cleanup() {
     clearTimeout(MP.connectionTimeout);
-    
+    hideLobby();
     if (MP.connection) {
         MP.connection.close();
     }
     if (MP.peer) {
         MP.peer.destroy();
     }
-    
     MP.peer = null;
     MP.connection = null;
     MP.roomCode = null;
@@ -575,6 +572,8 @@ function cleanup() {
     MP.isHost = false;
     MP.gameStarted = false;
     MP.opponentConnected = false;
+    MP.whitePlayerName = '';
+    MP.blackPlayerName = '';
 }
 
 // ========== HANDLE RESIGN ==========
@@ -652,6 +651,42 @@ function handleDrawAccepted() {
     showMsg('Game ended in a draw!');
 }
 
+// ========== PRE-GAME LOBBY (VS SCREEN) ==========
+function showLobby(isHost) {
+    const el = document.getElementById('multiplayer-lobby');
+    if (!el) return;
+    const whiteName = document.getElementById('lobby-white-name');
+    const blackName = document.getElementById('lobby-black-name');
+    const msg = document.getElementById('lobby-message');
+    const startBtn = document.getElementById('lobby-start-btn');
+    const waitText = document.getElementById('lobby-waiting-text');
+    if (whiteName) whiteName.textContent = MP.whitePlayerName || '—';
+    if (blackName) blackName.textContent = MP.blackPlayerName || '—';
+    if (msg) msg.textContent = isHost ? 'Opponent joined. Click Start when you\'re ready.' : 'Match ready. Waiting for host to start.';
+    if (startBtn) startBtn.style.display = isHost ? 'inline-block' : 'none';
+    if (waitText) waitText.style.display = isHost ? 'none' : 'inline';
+    el.style.display = 'flex';
+}
+
+function hideLobby() {
+    const el = document.getElementById('multiplayer-lobby');
+    if (el) el.style.display = 'none';
+}
+
+function setLobbyMessage(text) {
+    const msg = document.getElementById('lobby-message');
+    if (msg) msg.textContent = text;
+}
+
+function onLobbyStartClick() {
+    if (!MP.isHost || MP.gameStarted || !MP.connection || !MP.connection.open) return;
+    startGame();
+    MP.connection.send({ type: 'gameStart' });
+    setTimeout(() => {
+        if (MP.connection && MP.connection.open) MP.connection.send({ type: 'gameStart' });
+    }, 300);
+}
+
 // ========== UI ==========
 function updateUI() {
     const roomInfo = document.getElementById('room-info');
@@ -698,8 +733,10 @@ function updateProfiles() {
     const blackName = document.getElementById('black-profile-name');
     
     if (MP.roomCode && MP.myColor) {
-        if (whiteName) whiteName.textContent = MP.myColor === 'white' ? 'You' : 'Opponent';
-        if (blackName) blackName.textContent = MP.myColor === 'black' ? 'You' : 'Opponent';
+        const w = (MP.whitePlayerName && MP.whitePlayerName.trim()) ? MP.whitePlayerName.trim() : null;
+        const b = (MP.blackPlayerName && MP.blackPlayerName.trim()) ? MP.blackPlayerName.trim() : null;
+        if (whiteName) whiteName.textContent = w || (MP.myColor === 'white' ? 'You' : 'Opponent');
+        if (blackName) blackName.textContent = b || (MP.myColor === 'black' ? 'You' : 'Opponent');
     } else {
         if (whiteName) whiteName.textContent = 'Player 1';
         if (blackName) blackName.textContent = 'Player 2';

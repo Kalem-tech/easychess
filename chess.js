@@ -5,6 +5,70 @@ if (typeof NodeList !== 'undefined' && !NodeList.prototype.forEach) {
 
 // Chess piece sets - different visual styles (Copyright-safe themes only)
 const PIECE_SETS = {
+    // === CLASSIC CHESS PIECES (normal / actual chess piece look) ===
+    classicChess: {
+        name: 'Classic Chess Pieces',
+        white: {
+            king: '♔',
+            queen: '♕',
+            rook: '♖',
+            bishop: '♗',
+            knight: '♘',
+            pawn: '♙'
+        },
+        black: {
+            king: '♚',
+            queen: '♛',
+            rook: '♜',
+            bishop: '♝',
+            knight: '♞',
+            pawn: '♟'
+        }
+    },
+    staunton: {
+        name: 'Staunton (Piece Images)',
+        useImages: true,
+        white: {
+            king: 'https://lichess1.org/assets/piece/cburnett/wK.svg',
+            queen: 'https://lichess1.org/assets/piece/cburnett/wQ.svg',
+            rook: 'https://lichess1.org/assets/piece/cburnett/wR.svg',
+            bishop: 'https://lichess1.org/assets/piece/cburnett/wB.svg',
+            knight: 'https://lichess1.org/assets/piece/cburnett/wN.svg',
+            pawn: 'https://lichess1.org/assets/piece/cburnett/wP.svg'
+        },
+        black: {
+            king: 'https://lichess1.org/assets/piece/cburnett/bK.svg',
+            queen: 'https://lichess1.org/assets/piece/cburnett/bQ.svg',
+            rook: 'https://lichess1.org/assets/piece/cburnett/bR.svg',
+            bishop: 'https://lichess1.org/assets/piece/cburnett/bB.svg',
+            knight: 'https://lichess1.org/assets/piece/cburnett/bN.svg',
+            pawn: 'https://lichess1.org/assets/piece/cburnett/bP.svg'
+        }
+    },
+    classicBold: {
+        name: 'Classic Bold',
+        pieceClass: 'piece-set-bold',
+        white: { king: '♔', queen: '♕', rook: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
+        black: { king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟' }
+    },
+    classicOutline: {
+        name: 'Classic Outline',
+        pieceClass: 'piece-set-outline',
+        white: { king: '♔', queen: '♕', rook: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
+        black: { king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟' }
+    },
+    classicShadow: {
+        name: 'Classic Shadow',
+        pieceClass: 'piece-set-shadow',
+        white: { king: '♔', queen: '♕', rook: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
+        black: { king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟' }
+    },
+    classicItalic: {
+        name: 'Classic Italic',
+        pieceClass: 'piece-set-italic',
+        white: { king: '♔', queen: '♕', rook: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
+        black: { king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟' }
+    },
     // === CLASSIC STYLES ===
     unicode: {
         name: 'Unicode Symbols',
@@ -214,11 +278,26 @@ const PIECE_SETS = {
         black: { king: '🧫', queen: '🌡️', rook: '🛸', bishop: '⚛️', knight: '📐', pawn: '🔬' }
     }
 };
+if (typeof window !== 'undefined') window.PIECE_SETS = PIECE_SETS;
 
-// Default piece set
-let currentPieceSet = 'unicode';
+// Default piece set (Classic Chess Pieces = normal chess piece look)
+let currentPieceSet = 'classicChess';
 
-// Background themes with 50 cool designs
+// Reusable design overlays for background themes (semi-transparent, layered on top of gradient)
+const BG_PATTERNS = {
+    dots: 'radial-gradient(circle, rgba(255,255,255,0.14) 1.5px, transparent 2px) 0 0 / 28px 28px',
+    dotsDark: 'radial-gradient(circle, rgba(0,0,0,0.12) 1.5px, transparent 2px) 0 0 / 28px 28px',
+    grid: 'linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px) 0 0 / 32px 32px',
+    gridDark: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px) 0 0 / 36px 36px',
+    stripes: 'repeating-linear-gradient(45deg, transparent 0, transparent 18px, rgba(255,255,255,0.06) 18px, rgba(255,255,255,0.06) 36px)',
+    stripesSubtle: 'repeating-linear-gradient(-55deg, transparent 0, transparent 24px, rgba(0,0,0,0.04) 24px, rgba(0,0,0,0.04) 48px)',
+    stars: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25) 0.5px, transparent 1px) 0 0 / 6px 6px, radial-gradient(circle at 25% 25%, rgba(255,255,255,0.15) 0.5px, transparent 1px) 0 0 / 8px 8px',
+    hexagon: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'28\' height=\'24\'%3E%3Cpath d=\'M14 0l7 4v8l-7 4-7-4V4z\' fill=\'none\' stroke=\'rgba(255,255,255,0.08)\' stroke-width=\'0.5\'/%3E%3C/svg%3E") 0 0 / 28px 24px',
+    circles: 'radial-gradient(circle at center, rgba(255,255,255,0.08) 0%, transparent 50%) 0 0 / 64px 64px',
+    noise: 'radial-gradient(circle, rgba(0,0,0,0.06) 0.5px, transparent 0.5px) 0 0 / 3px 3px'
+};
+
+// Background themes with 50 cool designs (optional pattern overlay)
 const BACKGROUND_THEMES = {
     rainy: {
         name: 'Rainy Storm',
@@ -227,15 +306,18 @@ const BACKGROUND_THEMES = {
     },
     ocean: {
         name: 'Ocean Waves',
-        style: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #20b2aa 100%)'
+        style: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #20b2aa 100%)',
+        pattern: BG_PATTERNS.dots
     },
     forest: {
         name: 'Forest Green',
-        style: 'linear-gradient(to bottom, #134e5e 0%, #71b280 50%, #134e5e 100%)'
+        style: 'linear-gradient(to bottom, #134e5e 0%, #71b280 50%, #134e5e 100%)',
+        pattern: BG_PATTERNS.grid
     },
     sunset: {
         name: 'Sunset Sky',
-        style: 'linear-gradient(to bottom, #ff6b6b 0%, #ffa500 30%, #ffd700 60%, #ff6347 100%)'
+        style: 'linear-gradient(to bottom, #ff6b6b 0%, #ffa500 30%, #ffd700 60%, #ff6347 100%)',
+        pattern: BG_PATTERNS.stripes
     },
     aurora: {
         name: 'Aurora Borealis',
@@ -244,31 +326,38 @@ const BACKGROUND_THEMES = {
     },
     mountain: {
         name: 'Mountain Peak',
-        style: 'linear-gradient(to bottom, #87ceeb 0%, #b0c4de 30%, #778899 60%, #2f4f4f 100%)'
+        style: 'linear-gradient(to bottom, #87ceeb 0%, #b0c4de 30%, #778899 60%, #2f4f4f 100%)',
+        pattern: BG_PATTERNS.gridDark
     },
     desert: {
         name: 'Desert Dunes',
-        style: 'linear-gradient(135deg, #f4a460 0%, #daa520 50%, #cd853f 100%)'
+        style: 'linear-gradient(135deg, #f4a460 0%, #daa520 50%, #cd853f 100%)',
+        pattern: BG_PATTERNS.stripesSubtle
     },
     tropical: {
         name: 'Tropical Paradise',
-        style: 'linear-gradient(135deg, #00c9ff 0%, #92fe9d 50%, #00c9ff 100%)'
+        style: 'linear-gradient(135deg, #00c9ff 0%, #92fe9d 50%, #00c9ff 100%)',
+        pattern: BG_PATTERNS.dots
     },
     space: {
         name: 'Deep Space',
-        style: 'radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f1e 100%)'
+        style: 'radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f0f1e 100%)',
+        pattern: BG_PATTERNS.stars
     },
     nebula: {
         name: 'Cosmic Nebula',
-        style: 'radial-gradient(ellipse at top, #667eea 0%, #764ba2 30%, #2c3e50 70%, #0f0f1e 100%)'
+        style: 'radial-gradient(ellipse at top, #667eea 0%, #764ba2 30%, #2c3e50 70%, #0f0f1e 100%)',
+        pattern: BG_PATTERNS.stars
     },
     galaxy: {
         name: 'Milky Way',
-        style: 'radial-gradient(ellipse at center, #1e3c72 0%, #2a5298 30%, #1e3c72 60%, #0f0f1e 100%)'
+        style: 'radial-gradient(ellipse at center, #1e3c72 0%, #2a5298 30%, #1e3c72 60%, #0f0f1e 100%)',
+        pattern: BG_PATTERNS.stars
     },
     mars: {
         name: 'Mars Surface',
-        style: 'linear-gradient(135deg, #8b4513 0%, #cd5c5c 50%, #8b4513 100%)'
+        style: 'linear-gradient(135deg, #8b4513 0%, #cd5c5c 50%, #8b4513 100%)',
+        pattern: BG_PATTERNS.dotsDark
     },
     jupiter: {
         name: 'Jupiter Storm',
@@ -277,107 +366,133 @@ const BACKGROUND_THEMES = {
     },
     gradient1: {
         name: 'Purple Dream',
-        style: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        style: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        pattern: BG_PATTERNS.hexagon
     },
     gradient2: {
         name: 'Blue Ocean',
-        style: 'linear-gradient(135deg, #20b2aa 0%, #008080 100%)'
+        style: 'linear-gradient(135deg, #20b2aa 0%, #008080 100%)',
+        pattern: BG_PATTERNS.dots
     },
     gradient3: {
         name: 'Sunset Fire',
-        style: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+        style: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+        pattern: BG_PATTERNS.circles
     },
     gradient4: {
         name: 'Emerald Green',
-        style: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'
+        style: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+        pattern: BG_PATTERNS.grid
     },
     gradient5: {
         name: 'Rose Gold',
-        style: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)'
+        style: 'linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%)',
+        pattern: BG_PATTERNS.stripesSubtle
     },
     neon: {
         name: 'Neon Nights',
-        style: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)'
+        style: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+        pattern: BG_PATTERNS.gridDark
     },
     cyberpunk: {
         name: 'Cyberpunk City',
-        style: 'linear-gradient(to bottom, #1a1a2e 0%, #16213e 30%, #0f3460 60%, #533483 100%)'
+        style: 'linear-gradient(to bottom, #1a1a2e 0%, #16213e 30%, #0f3460 60%, #533483 100%)',
+        pattern: BG_PATTERNS.grid
     },
     matrix: {
         name: 'Matrix Code',
-        style: 'linear-gradient(to bottom, #000000 0%, #003300 50%, #000000 100%)'
+        style: 'linear-gradient(to bottom, #000000 0%, #003300 50%, #000000 100%)',
+        pattern: 'linear-gradient(rgba(0,255,100,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,100,0.03) 1px, transparent 1px) 0 0 / 20px 20px'
     },
     dark1: {
         name: 'Midnight Blue',
-        style: 'linear-gradient(to bottom, #0c0c1d 0%, #1a1a3e 50%, #0c0c1d 100%)'
+        style: 'linear-gradient(to bottom, #0c0c1d 0%, #1a1a3e 50%, #0c0c1d 100%)',
+        pattern: BG_PATTERNS.stars
     },
     dark2: {
         name: 'Charcoal Storm',
-        style: 'linear-gradient(to bottom, #2c3e50 0%, #34495e 30%, #4a5568 60%, #2d3748 100%)'
+        style: 'linear-gradient(to bottom, #2c3e50 0%, #34495e 30%, #4a5568 60%, #2d3748 100%)',
+        pattern: BG_PATTERNS.gridDark
     },
     dark3: {
         name: 'Deep Purple',
-        style: 'linear-gradient(135deg, #2d1b69 0%, #4a148c 50%, #6a1b9a 100%)'
+        style: 'linear-gradient(135deg, #2d1b69 0%, #4a148c 50%, #6a1b9a 100%)',
+        pattern: BG_PATTERNS.hexagon
     },
     dark4: {
         name: 'Blood Red',
-        style: 'linear-gradient(135deg, #1a0000 0%, #4a0000 50%, #1a0000 100%)'
+        style: 'linear-gradient(135deg, #1a0000 0%, #4a0000 50%, #1a0000 100%)',
+        pattern: BG_PATTERNS.dotsDark
     },
     dark5: {
         name: 'Shadow Realm',
-        style: 'linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%)'
+        style: 'linear-gradient(to bottom, #000000 0%, #1a1a1a 50%, #000000 100%)',
+        pattern: BG_PATTERNS.gridDark
     },
     bright1: {
         name: 'Sunshine Yellow',
-        style: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)'
+        style: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
+        pattern: BG_PATTERNS.circles
     },
     bright2: {
         name: 'Coral Reef',
-        style: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)'
+        style: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)',
+        pattern: BG_PATTERNS.dots
     },
     bright3: {
         name: 'Lavender Fields',
-        style: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+        style: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+        pattern: BG_PATTERNS.stripesSubtle
     },
     bright4: {
         name: 'Mint Fresh',
-        style: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)'
+        style: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+        pattern: BG_PATTERNS.grid
     },
     bright5: {
         name: 'Peachy Keen',
-        style: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
+        style: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+        pattern: BG_PATTERNS.dots
     },
     spring: {
         name: 'Spring Bloom',
-        style: 'linear-gradient(135deg, #a8e6cf 0%, #dcedc1 50%, #ffd3a5 100%)'
+        style: 'linear-gradient(135deg, #a8e6cf 0%, #dcedc1 50%, #ffd3a5 100%)',
+        pattern: BG_PATTERNS.dots
     },
     summer: {
         name: 'Summer Beach',
-        style: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #4facfe 100%)'
+        style: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #4facfe 100%)',
+        pattern: BG_PATTERNS.stripes
     },
     autumn: {
         name: 'Autumn Leaves',
-        style: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 50%, #d299c2 100%)'
+        style: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 50%, #d299c2 100%)',
+        pattern: BG_PATTERNS.stripesSubtle
     },
     winter: {
         name: 'Winter Frost',
-        style: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)'
+        style: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
+        pattern: BG_PATTERNS.circles
     },
     christmas: {
         name: 'Christmas Eve',
-        style: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%)'
+        style: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%)',
+        pattern: BG_PATTERNS.stars
     },
     watercolor: {
         name: 'Watercolor',
-        style: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 50%, #c2e9fb 75%, #a1c4fd 100%)'
+        style: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 50%, #c2e9fb 75%, #a1c4fd 100%)',
+        pattern: BG_PATTERNS.noise
     },
     pastel: {
         name: 'Pastel Dreams',
-        style: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #ff9a9e 50%, #fecfef 75%, #c2e9fb 100%)'
+        style: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #ff9a9e 50%, #fecfef 75%, #c2e9fb 100%)',
+        pattern: BG_PATTERNS.noise
     },
     vintage: {
         name: 'Vintage Film',
-        style: 'linear-gradient(135deg, #d4af37 0%, #8b6914 50%, #d4af37 100%)'
+        style: 'linear-gradient(135deg, #d4af37 0%, #8b6914 50%, #d4af37 100%)',
+        pattern: BG_PATTERNS.stripesSubtle
     },
     retro: {
         name: 'Retro Wave',
@@ -386,7 +501,8 @@ const BACKGROUND_THEMES = {
     },
     abstract: {
         name: 'Abstract Art',
-        style: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)'
+        style: 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%)',
+        pattern: BG_PATTERNS.hexagon
     },
     fire: {
         name: 'Fire & Flame',
@@ -395,7 +511,8 @@ const BACKGROUND_THEMES = {
     },
     ice: {
         name: 'Ice Crystal',
-        style: 'linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%, #4dd0e1 100%)'
+        style: 'linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 50%, #4dd0e1 100%)',
+        pattern: BG_PATTERNS.circles
     },
     electric: {
         name: 'Electric Storm',
@@ -413,6 +530,7 @@ const BACKGROUND_THEMES = {
         animation: 'holographic 8s ease infinite'
     }
 };
+if (typeof window !== 'undefined') window.BACKGROUND_THEMES = BACKGROUND_THEMES;
 
 // Chess game class
 class ChessGame {
@@ -485,13 +603,9 @@ class ChessGame {
             boardContainer: '#ffffff'
         };
         
-        this.colors = userPrefs?.colors || defaultColors;
+        this.colors = userPrefs?.colors ? { ...defaultColors, ...userPrefs.colors } : { ...defaultColors };
         
-        // ALWAYS force reset square colors to classic colors (ignore any saved preferences)
-        this.colors.lightSquare = defaultColors.lightSquare;
-        this.colors.darkSquare = defaultColors.darkSquare;
-        
-        // Ensure all other color properties exist with defaults if not set
+        // Ensure all color properties exist with defaults if not set
         if (!this.colors.whitePiece) {
             this.colors.whitePiece = defaultColors.whitePiece;
         }
@@ -508,16 +622,14 @@ class ChessGame {
             this.colors.greenPiece = '#27ae60';
         }
         
-        // Save the corrected colors immediately to override any saved blue colors
-        this.savePreferences();
-        
         // Current piece set - validate that it exists in PIECE_SETS
         const savedPieceSet = userPrefs?.pieceSet || currentPieceSet;
-        this.pieceSet = PIECE_SETS[savedPieceSet] ? savedPieceSet : 'unicode';
+        this.pieceSet = PIECE_SETS[savedPieceSet] ? savedPieceSet : 'classicChess';
         currentPieceSet = this.pieceSet;
         
         // Current background theme
         this.backgroundTheme = userPrefs?.backgroundTheme || 'rainy';
+        if (userPrefs?.customBackground) this.customBackground = { ...userPrefs.customBackground };
         
         // Apply background immediately
         if (document.body) {
@@ -659,29 +771,8 @@ class ChessGame {
     }
 
     init() {
-        // First, clear any saved blue colors from localStorage
-        if (typeof auth !== 'undefined' && auth && auth.currentUser) {
-            const prefs = auth.getUserPreferences();
-            if (prefs && prefs.colors) {
-                // Check and fix blue colors
-                const ls = prefs.colors.lightSquare;
-                const ds = prefs.colors.darkSquare;
-                const needsFix = prefs.colors.lightSquare !== '#f0d9b5' || 
-                                prefs.colors.darkSquare !== '#b58863' ||
-                                (ls && ls.toLowerCase && ls.toLowerCase().indexOf('5d7fad') !== -1) ||
-                                (ls && ls.toLowerCase && ls.toLowerCase().indexOf('89a9d1') !== -1) ||
-                                (ds && ds.toLowerCase && ds.toLowerCase().indexOf('5d7fad') !== -1) ||
-                                (ds && ds.toLowerCase && ds.toLowerCase().indexOf('89a9d1') !== -1);
-                
-                if (needsFix) {
-                    prefs.colors.lightSquare = '#f0d9b5';
-                    prefs.colors.darkSquare = '#b58863';
-                    auth.saveUserPreferences(prefs);
-                }
-            }
-        }
-        
         this.setupUserInterface();
+        this.loadSettingsFromPreferences();
         
         // Load saved player color preference ONLY for single player
         // In multiplayer, the color is determined by host/guest status
@@ -934,6 +1025,66 @@ class ChessGame {
         this.updateReviewButtonVisibility();
     }
     
+    loadSettingsFromPreferences() {
+        const prefs = typeof auth !== 'undefined' && auth ? auth.getUserPreferences() : null;
+        if (!prefs) return;
+        const set = (id, val) => {
+            const el = document.getElementById(id);
+            if (el && val != null) el.value = val;
+        };
+        // Sync colors from preferences so board and sidebar match saved settings
+        if (prefs.colors) {
+            const def = { lightSquare: '#f0d9b5', darkSquare: '#b58863', whitePiece: '#ffffff', blackPiece: '#000000', boardContainer: '#ffffff' };
+            this.colors = { ...def, ...prefs.colors };
+            set('light-square-color', this.colors.lightSquare);
+            set('light-square-text', this.colors.lightSquare);
+            set('dark-square-color', this.colors.darkSquare);
+            set('dark-square-text', this.colors.darkSquare);
+            set('white-piece-color', this.colors.whitePiece);
+            set('white-piece-text', this.colors.whitePiece);
+            set('black-piece-color', this.colors.blackPiece);
+            set('black-piece-text', this.colors.blackPiece);
+            set('board-container-color', this.colors.boardContainer);
+            set('board-container-text', this.colors.boardContainer);
+        }
+        // Sync piece set and background theme from preferences
+        if (prefs.pieceSet && PIECE_SETS[prefs.pieceSet]) {
+            this.pieceSet = prefs.pieceSet;
+            set('piece-set-selector', this.pieceSet);
+        }
+        if (prefs.backgroundTheme) {
+            this.backgroundTheme = prefs.backgroundTheme;
+            set('background-theme-selector', this.backgroundTheme);
+            const customSection = document.getElementById('custom-background-section');
+            if (customSection) customSection.style.display = this.backgroundTheme === 'custom' ? 'block' : 'none';
+            if (prefs.customBackground) {
+                this.customBackground = { ...prefs.customBackground };
+                set('custom-bg-color1', this.customBackground.color1);
+                set('custom-bg-color1-text', this.customBackground.color1);
+                set('custom-bg-color2', this.customBackground.color2);
+                set('custom-bg-color2-text', this.customBackground.color2);
+                set('custom-bg-angle', this.customBackground.angle != null ? this.customBackground.angle : 135);
+            }
+        }
+        // Apply saved appearance to board and page
+        this.applyBackground();
+        this.applyColors();
+        this.renderBoard();
+        this.updateCapturedPieces();
+        if (document.getElementById('piece-preview-white')) this.updatePiecePreviewInCustomization();
+        // Player names, timer, bot
+        if (prefs.playerNames) {
+            set('white-player-name', prefs.playerNames.white);
+            set('black-player-name', prefs.playerNames.black);
+        }
+        if (prefs.timerMinutes) {
+            set('white-timer-minutes', prefs.timerMinutes.white);
+            set('black-timer-minutes', prefs.timerMinutes.black);
+        }
+        if (prefs.botName != null) set('bot-name', prefs.botName);
+        if (prefs.botDifficulty != null) set('bot-difficulty', prefs.botDifficulty);
+    }
+
     setupUserInterface() {
         // Display username
         if (typeof auth !== 'undefined' && auth && auth.currentUser) {
@@ -956,36 +1107,7 @@ class ChessGame {
     }
     
     setupSettingsButton() {
-        const settingsBtn = document.getElementById('settings-btn');
-        const settingsModal = document.getElementById('settings-modal');
-        const settingsCloseBtn = document.getElementById('settings-close-btn');
-        const profileBtn = document.getElementById('settings-profile-btn');
-        const customizationBtn = document.getElementById('settings-customization-btn');
-        const timerBtn = document.getElementById('settings-timer-btn');
-        const botBtn = document.getElementById('settings-bot-btn');
-        
-        // Open settings modal
-        if (settingsBtn && settingsModal) {
-            settingsBtn.addEventListener('click', () => {
-                settingsModal.classList.add('show');
-            });
-        }
-        
-        // Close settings modal
-        if (settingsCloseBtn && settingsModal) {
-            settingsCloseBtn.addEventListener('click', () => {
-                settingsModal.classList.remove('show');
-            });
-        }
-        
-        // Close modal when clicking outside
-        if (settingsModal) {
-            settingsModal.addEventListener('click', (e) => {
-                if (e.target === settingsModal) {
-                    settingsModal.classList.remove('show');
-                }
-            });
-        }
+        // Settings are on settings.html; no modal on game page
 
         // Lessons button and modal
         const lessonsBtn = document.getElementById('lessons-btn');
@@ -1018,58 +1140,6 @@ class ChessGame {
                 if (panel) panel.classList.add('active');
             });
         });
-        
-        // Scroll to profile/player names section
-        if (profileBtn) {
-            profileBtn.addEventListener('click', () => {
-                settingsModal.classList.remove('show');
-                const playerNamesSection = document.querySelector('.player-names');
-                if (playerNamesSection) {
-                    setTimeout(() => {
-                        playerNamesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 300);
-                }
-            });
-        }
-        
-        // Scroll to customization section
-        if (customizationBtn) {
-            customizationBtn.addEventListener('click', () => {
-                settingsModal.classList.remove('show');
-                const customizationSection = document.querySelector('.customization');
-                if (customizationSection) {
-                    setTimeout(() => {
-                        customizationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 300);
-                }
-            });
-        }
-        
-        // Scroll to timer settings
-        if (timerBtn) {
-            timerBtn.addEventListener('click', () => {
-                settingsModal.classList.remove('show');
-                const timerSection = document.querySelector('.timer-settings');
-                if (timerSection) {
-                    setTimeout(() => {
-                        timerSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 300);
-                }
-            });
-        }
-        
-        // Scroll to bot settings
-        if (botBtn) {
-            botBtn.addEventListener('click', () => {
-                settingsModal.classList.remove('show');
-                const botSection = document.querySelector('.bot-settings');
-                if (botSection) {
-                    setTimeout(() => {
-                        botSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 300);
-                }
-            });
-        }
     }
 
     renderBoard() {
@@ -1117,15 +1187,25 @@ class ChessGame {
                 const piece = this.board[actualRow][actualCol];
                 if (piece) {
                     const pieceSet = PIECE_SETS[this.pieceSet] || PIECE_SETS['unicode'];
-                    const pieceSpan = document.createElement('span');
-                    pieceSpan.className = 'piece-symbol piece-' + piece.color;
                     const symSet = pieceSet[piece.color] || pieceSet.white;
-                    pieceSpan.textContent = symSet[piece.type];
-                    const colorKey = piece.color + 'Piece';
-                    const pieceColorValue = this.colors[colorKey] || (piece.color === 'white' ? '#ffffff' : piece.color === 'black' ? '#000000' : piece.color === 'red' ? '#c0392b' : '#27ae60');
-                    pieceSpan.style.setProperty('color', pieceColorValue, 'important');
-                    pieceSpan.style.setProperty('-webkit-text-fill-color', pieceColorValue, 'important');
-                    square.appendChild(pieceSpan);
+                    const sym = symSet[piece.type];
+                    const isImageSet = pieceSet.useImages && sym && (String(sym).startsWith('http') || String(sym).startsWith('data:'));
+                    if (isImageSet) {
+                        const img = document.createElement('img');
+                        img.src = sym;
+                        img.alt = piece.type;
+                        img.className = 'piece-symbol piece-img piece-' + piece.color;
+                        square.appendChild(img);
+                    } else {
+                        const pieceSpan = document.createElement('span');
+                        pieceSpan.className = 'piece-symbol piece-' + piece.color + (pieceSet.pieceClass ? ' ' + pieceSet.pieceClass : '');
+                        pieceSpan.textContent = sym || '';
+                        const colorKey = piece.color + 'Piece';
+                        const pieceColorValue = this.colors[colorKey] || (piece.color === 'white' ? '#ffffff' : piece.color === 'black' ? '#000000' : piece.color === 'red' ? '#c0392b' : '#27ae60');
+                        pieceSpan.style.setProperty('color', pieceColorValue, 'important');
+                        pieceSpan.style.setProperty('-webkit-text-fill-color', pieceColorValue, 'important');
+                        square.appendChild(pieceSpan);
+                    }
                     
                     square.style.removeProperty('color');
                     square.style.removeProperty('filter');
@@ -1926,12 +2006,44 @@ class ChessGame {
         
         // Background theme selector
         const backgroundSelector = document.getElementById('background-theme-selector');
+        const customBgSection = document.getElementById('custom-background-section');
         backgroundSelector.value = this.backgroundTheme;
         backgroundSelector.addEventListener('change', (e) => {
             this.backgroundTheme = e.target.value;
+            if (customBgSection) customBgSection.style.display = this.backgroundTheme === 'custom' ? 'block' : 'none';
             this.applyBackground();
             this.savePreferences();
         });
+        if (customBgSection) customBgSection.style.display = this.backgroundTheme === 'custom' ? 'block' : 'none';
+        
+        const customBgColor1 = document.getElementById('custom-bg-color1');
+        const customBgColor2 = document.getElementById('custom-bg-color2');
+        const customBgAngle = document.getElementById('custom-bg-angle');
+        const customBg = this.getCustomBackground();
+        if (customBgColor1) { customBgColor1.value = customBg.color1; }
+        if (customBgColor2) { customBgColor2.value = customBg.color2; }
+        if (customBgAngle) { customBgAngle.value = String(customBg.angle); }
+        const customBgColor1Text = document.getElementById('custom-bg-color1-text');
+        const customBgColor2Text = document.getElementById('custom-bg-color2-text');
+        if (customBgColor1Text) customBgColor1Text.value = customBg.color1;
+        if (customBgColor2Text) customBgColor2Text.value = customBg.color2;
+        const applyCustomBg = () => {
+            if (!customBgColor1 || !customBgColor2 || !customBgAngle) return;
+            const c1 = customBgColor1.value;
+            const c2 = customBgColor2.value;
+            const angle = parseInt(customBgAngle.value, 10) || 135;
+            this.setCustomBackground(c1, c2, angle);
+            this.applyBackground();
+            this.savePreferences();
+        };
+        if (customBgColor1) customBgColor1.addEventListener('input', () => { if (customBgColor1Text) customBgColor1Text.value = customBgColor1.value; applyCustomBg(); });
+        if (customBgColor1) customBgColor1.addEventListener('change', applyCustomBg);
+        if (customBgColor2) customBgColor2.addEventListener('input', () => { if (customBgColor2Text) customBgColor2Text.value = customBgColor2.value; applyCustomBg(); });
+        if (customBgColor2) customBgColor2.addEventListener('change', applyCustomBg);
+        if (customBgColor1Text) customBgColor1Text.addEventListener('input', () => { const v = customBgColor1Text.value.trim(); if (/^#[0-9A-Fa-f]{6}$/.test(v)) { customBgColor1.value = v; applyCustomBg(); } });
+        if (customBgColor2Text) customBgColor2Text.addEventListener('input', () => { const v = customBgColor2Text.value.trim(); if (/^#[0-9A-Fa-f]{6}$/.test(v)) { customBgColor2.value = v; applyCustomBg(); } });
+        if (customBgAngle) customBgAngle.addEventListener('change', applyCustomBg);
+        if (customBgAngle) customBgAngle.addEventListener('input', applyCustomBg);
         
         // Piece set selector
         const pieceSetSelector = document.getElementById('piece-set-selector');
@@ -1943,7 +2055,9 @@ class ChessGame {
             this.applyColors();
             this.updateCapturedPieces();
             this.savePreferences();
+            this.updatePiecePreviewInCustomization();
         });
+        this.updatePiecePreviewInCustomization();
         
         // Reset colors button - use a more robust approach
         const setupResetButton = () => {
@@ -1972,6 +2086,25 @@ class ChessGame {
         }
     }
     
+    updatePiecePreviewInCustomization() {
+        const whiteEl = document.getElementById('piece-preview-white');
+        const blackEl = document.getElementById('piece-preview-black');
+        if (!whiteEl || !blackEl) return;
+        const pieceSet = PIECE_SETS[this.pieceSet] || PIECE_SETS['classicChess'];
+        if (pieceSet.useImages) {
+            whiteEl.textContent = 'Piece images';
+            blackEl.textContent = 'Piece images';
+            whiteEl.className = blackEl.className = 'piece-preview-symbols';
+            return;
+        }
+        const order = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'];
+        whiteEl.textContent = order.map(t => pieceSet.white[t] || '').join(' ');
+        blackEl.textContent = order.map(t => pieceSet.black[t] || '').join(' ');
+        const pieceClass = pieceSet.pieceClass || '';
+        whiteEl.className = 'piece-preview-symbols' + (pieceClass ? ' ' + pieceClass : '');
+        blackEl.className = 'piece-preview-symbols' + (pieceClass ? ' ' + pieceClass : '');
+    }
+
     applyColors() {
         // Apply square colors - ensure all squares get the correct colors
         const squares = document.querySelectorAll('.square');
@@ -2017,17 +2150,33 @@ class ChessGame {
             let pieceSpan = square.querySelector('.piece-symbol');
             
             if (boardPiece) {
-                if (!pieceSpan) {
-                    pieceSpan = document.createElement('span');
-                    pieceSpan.className = 'piece-symbol';
-                    square.appendChild(pieceSpan);
+                const symSet = pieceSet[boardPiece.color] || pieceSet.white;
+                const sym = symSet[boardPiece.type];
+                const isImageSet = pieceSet.useImages && sym && (String(sym).startsWith('http') || String(sym).startsWith('data:'));
+                if (isImageSet) {
+                    if (pieceSpan && !pieceSpan.classList.contains('piece-img')) pieceSpan.remove();
+                    let img = square.querySelector('.piece-symbol.piece-img');
+                    if (!img) {
+                        img = document.createElement('img');
+                        img.className = 'piece-symbol piece-img piece-' + boardPiece.color;
+                        square.appendChild(img);
+                    }
+                    img.src = sym;
+                    img.alt = boardPiece.type;
+                    img.className = 'piece-symbol piece-img piece-' + boardPiece.color;
+                } else {
+                    if (pieceSpan && pieceSpan.classList.contains('piece-img')) pieceSpan.remove();
+                    if (!pieceSpan || pieceSpan.classList.contains('piece-img')) {
+                        pieceSpan = document.createElement('span');
+                        pieceSpan.className = 'piece-symbol';
+                        square.appendChild(pieceSpan);
+                    }
+                    pieceSpan.className = 'piece-symbol piece-' + boardPiece.color + (pieceSet.pieceClass ? ' ' + pieceSet.pieceClass : '');
+                    pieceSpan.textContent = sym || '';
+                    const pieceColorValue = this.colors[boardPiece.color === 'white' ? 'whitePiece' : 'blackPiece'] || (boardPiece.color === 'white' ? '#ffffff' : '#000000');
+                    pieceSpan.style.setProperty('color', pieceColorValue, 'important');
+                    pieceSpan.style.setProperty('-webkit-text-fill-color', pieceColorValue, 'important');
                 }
-                pieceSpan.className = 'piece-symbol piece-' + boardPiece.color;
-                pieceSpan.textContent = pieceSet[boardPiece.color][boardPiece.type];
-                const pieceColorValue = this.colors[boardPiece.color === 'white' ? 'whitePiece' : 'blackPiece'] || (boardPiece.color === 'white' ? '#ffffff' : '#000000');
-                pieceSpan.style.setProperty('color', pieceColorValue, 'important');
-                pieceSpan.style.setProperty('-webkit-text-fill-color', pieceColorValue, 'important');
-                
                 square.style.removeProperty('color');
                 square.style.removeProperty('filter');
                 
@@ -2037,10 +2186,9 @@ class ChessGame {
                 square.setAttribute('data-piece-type', boardPiece.type);
                 square.setAttribute('data-piece-color', boardPiece.color);
             } else {
-                // Remove piece span if no piece
-                if (pieceSpan) {
-                    pieceSpan.remove();
-                }
+                // Remove piece (span or img) if no piece
+                const pieceEl = square.querySelector('.piece-symbol');
+                if (pieceEl) pieceEl.remove();
                 square.removeAttribute('data-piece-type');
                 square.removeAttribute('data-piece-color');
                 square.title = '';
@@ -2063,21 +2211,28 @@ class ChessGame {
     }
     
     applyBackground() {
-        const theme = BACKGROUND_THEMES[this.backgroundTheme];
-        if (!theme) return;
-        
         const body = document.body;
         if (!body) return;
         
-        body.style.background = theme.style;
-        
-        if (theme.animation) {
-            body.style.animation = theme.animation;
-        } else {
+        if (this.backgroundTheme === 'custom') {
+            const custom = this.getCustomBackground();
+            const angle = custom.angle != null ? custom.angle : 135;
+            body.style.background = `linear-gradient(${angle}deg, ${custom.color1 || '#2c3e50'}, ${custom.color2 || '#3498db'})`;
             body.style.animation = 'none';
+        } else {
+            const theme = BACKGROUND_THEMES[this.backgroundTheme];
+            if (!theme) return;
+            body.style.background = theme.pattern ? (theme.pattern + ', ' + theme.style) : theme.style;
+            if (theme.pattern) {
+                body.style.backgroundRepeat = 'repeat, no-repeat';
+            }
+            if (theme.animation) {
+                body.style.animation = theme.animation;
+            } else {
+                body.style.animation = 'none';
+            }
         }
         
-        // Show rain and lightning only when Rainy Storm theme is selected
         const rainContainer = document.getElementById('rain-container');
         const lightning = document.getElementById('lightning-effect');
         const showRain = this.backgroundTheme === 'rainy';
@@ -2085,13 +2240,34 @@ class ChessGame {
         if (lightning) lightning.style.display = showRain ? 'block' : 'none';
     }
     
+    getCustomBackground() {
+        const prefs = typeof auth !== 'undefined' && auth ? auth.getUserPreferences() : null;
+        const c = (prefs && prefs.customBackground) || {};
+        return {
+            color1: c.color1 || '#2c3e50',
+            color2: c.color2 || '#3498db',
+            angle: c.angle != null ? c.angle : 135
+        };
+    }
+    
+    setCustomBackground(color1, color2, angle) {
+        if (!this.customBackground) this.customBackground = this.getCustomBackground();
+        if (color1 != null) this.customBackground.color1 = color1;
+        if (color2 != null) this.customBackground.color2 = color2;
+        if (angle != null) this.customBackground.angle = angle;
+    }
+    
     savePreferences() {
         if (typeof auth !== 'undefined' && auth && auth.currentUser) {
-            auth.saveUserPreferences({
+            const prefs = {
                 colors: { ...this.colors },
                 pieceSet: this.pieceSet,
                 backgroundTheme: this.backgroundTheme
-            });
+            };
+            if (this.backgroundTheme === 'custom' && this.customBackground) {
+                prefs.customBackground = { ...this.customBackground };
+            }
+            auth.saveUserPreferences(prefs);
         }
     }
     
@@ -2180,10 +2356,10 @@ class ChessGame {
             blackPiece: '#000000',
             boardContainer: '#ffffff'
         };
-        this.pieceSet = 'unicode';
+        this.pieceSet = 'classicChess';
         this.backgroundTheme = 'rainy';
-        currentPieceSet = 'unicode';
-        document.getElementById('piece-set-selector').value = 'unicode';
+        currentPieceSet = 'classicChess';
+        document.getElementById('piece-set-selector').value = 'classicChess';
         document.getElementById('background-theme-selector').value = 'rainy';
         // Update board container background
         const boardContainer = document.querySelector('.board-container');
@@ -4326,26 +4502,43 @@ class ChessGame {
         whiteCaptured.innerHTML = '';
         blackCaptured.innerHTML = '';
         
-        // Fallback to unicode if the selected piece set doesn't exist
         const pieceSet = PIECE_SETS[this.pieceSet] || PIECE_SETS['unicode'];
         const whitePieceColor = this.colors.whitePiece || '#ffffff';
         const blackPieceColor = this.colors.blackPiece || '#000000';
+        const isImageSet = pieceSet.useImages;
         this.capturedPieces.white.forEach(piece => {
-            const span = document.createElement('span');
-            span.className = 'captured-piece';
-            span.textContent = pieceSet.white[piece.type];
-            span.style.setProperty('color', whitePieceColor, 'important');
-            span.style.setProperty('-webkit-text-fill-color', whitePieceColor, 'important');
-            whiteCaptured.appendChild(span);
+            const sym = pieceSet.white[piece.type];
+            if (isImageSet && sym && (String(sym).startsWith('http') || String(sym).startsWith('data:'))) {
+                const img = document.createElement('img');
+                img.src = sym;
+                img.alt = piece.type;
+                img.className = 'captured-piece piece-img';
+                whiteCaptured.appendChild(img);
+            } else {
+                const span = document.createElement('span');
+                span.className = 'captured-piece' + (pieceSet.pieceClass ? ' ' + pieceSet.pieceClass : '');
+                span.textContent = sym || '';
+                span.style.setProperty('color', whitePieceColor, 'important');
+                span.style.setProperty('-webkit-text-fill-color', whitePieceColor, 'important');
+                whiteCaptured.appendChild(span);
+            }
         });
-        
         this.capturedPieces.black.forEach(piece => {
-            const span = document.createElement('span');
-            span.className = 'captured-piece';
-            span.textContent = pieceSet.black[piece.type];
-            span.style.setProperty('color', blackPieceColor, 'important');
-            span.style.setProperty('-webkit-text-fill-color', blackPieceColor, 'important');
-            blackCaptured.appendChild(span);
+            const sym = pieceSet.black[piece.type];
+            if (isImageSet && sym && (String(sym).startsWith('http') || String(sym).startsWith('data:'))) {
+                const img = document.createElement('img');
+                img.src = sym;
+                img.alt = piece.type;
+                img.className = 'captured-piece piece-img';
+                blackCaptured.appendChild(img);
+            } else {
+                const span = document.createElement('span');
+                span.className = 'captured-piece' + (pieceSet.pieceClass ? ' ' + pieceSet.pieceClass : '');
+                span.textContent = sym || '';
+                span.style.setProperty('color', blackPieceColor, 'important');
+                span.style.setProperty('-webkit-text-fill-color', blackPieceColor, 'important');
+                blackCaptured.appendChild(span);
+            }
         });
     }
 
@@ -4436,12 +4629,13 @@ var GUEST_PREFERENCES = {
         blackPiece: '#000000',
         boardContainer: '#ffffff'
     },
-    pieceSet: 'unicode',
+    pieceSet: 'classicChess',
     backgroundTheme: 'rainy'
 };
 
-// Initialize the game when the page loads
+// Initialize the game when the page loads (skip on settings page - no chessboard)
 document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('chessboard')) return;
     // Ensure any visitor can play: use auth if loaded, otherwise guest fallback (no redirect to login)
     var authToUse = (typeof auth !== 'undefined' && auth) ? auth : null;
     if (!authToUse) {

@@ -12,10 +12,29 @@ class AuthSystem {
             this.setupLoginPage();
         }
         
-        // Check if we're on main page
+        // Ensure we have a current user on game page or settings page so preferences can be saved
         if (document.getElementById('chessboard')) {
             this.checkAuth();
+        } else if (document.getElementById('background-theme-selector') || document.getElementById('save-changes-btn')) {
+            // Settings page: ensure guest exists so Save changes persists
+            this.ensureCurrentUser();
         }
+    }
+
+    ensureCurrentUser() {
+        if (this.currentUser) return;
+        const guest = {
+            username: 'Guest',
+            email: null,
+            preferences: {
+                colors: { lightSquare: '#f0d9b5', darkSquare: '#b58863', whitePiece: '#ffffff', blackPiece: '#000000', boardContainer: '#ffffff' },
+                pieceSet: 'classicChess',
+                backgroundTheme: 'rainy'
+            }
+        };
+        if (!this.users['Guest']) this.users['Guest'] = guest;
+        this.setCurrentUser(guest);
+        this.saveUsers();
     }
 
     loadUsers() {
@@ -404,25 +423,18 @@ class AuthSystem {
     checkAuth() {
         if (!this.currentUser) {
             // No user found — allow guest/demo mode so the app can initialize
-            // This enables the site to work when deployed publicly without
-            // requiring a login. Real user flows remain unchanged when a
-            // real `currentUser` exists.
             const guest = {
                 username: 'Guest',
                 email: null,
                 preferences: {
-                    colors: {
-                        lightSquare: '#f0d9b5',
-                        darkSquare: '#b58863',
-                        whitePiece: '#ffffff',
-                        blackPiece: '#000000',
-                        boardContainer: '#ffffff'
-                    },
-                    pieceSet: 'letters',
+                    colors: { lightSquare: '#f0d9b5', darkSquare: '#b58863', whitePiece: '#ffffff', blackPiece: '#000000', boardContainer: '#ffffff' },
+                    pieceSet: 'classicChess',
                     backgroundTheme: 'rainy'
                 }
             };
+            this.users['Guest'] = guest;
             this.setCurrentUser(guest);
+            this.saveUsers();
             console.warn('No current user found — entering guest mode');
             return true;
         }
@@ -437,15 +449,13 @@ class AuthSystem {
     }
 
     saveUserPreferences(preferences) {
-        if (this.currentUser) {
-            const username = this.currentUser.username;
-            if (this.users[username]) {
-                this.users[username].preferences = preferences;
-                this.currentUser.preferences = preferences;
-                this.setCurrentUser(this.currentUser);
-                this.saveUsers();
-            }
-        }
+        if (!this.currentUser) return;
+        const username = this.currentUser.username;
+        if (!this.users[username]) this.users[username] = { ...this.currentUser };
+        this.users[username].preferences = preferences;
+        this.currentUser.preferences = preferences;
+        this.setCurrentUser(this.currentUser);
+        this.saveUsers();
     }
 }
 

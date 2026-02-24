@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Settings - Chess Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .settings-page { padding: 20px; max-width: 700px; margin: 0 auto; }
+        .settings-page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+        .settings-page-header h1 { margin: 0; font-size: 1.5rem; color: #667eea; }
+        .settings-header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .btn-save-changes { padding: 8px 16px; background: #38a169; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-save-changes:hover { background: #2f855a; color: white; }
+        .settings-back-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #667eea; color: white; border-radius: 8px; text-decoration: none; font-weight: 600; }
+        .settings-back-link:hover { background: #5568d3; color: white; }
+        .settings-section-block { margin-bottom: 32px; padding: 20px; background: rgba(255,255,255,0.95); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .settings-section-block h2 { margin: 0 0 16px; font-size: 1.2rem; color: #333; }
+        .piece-preview { margin-top: 12px; padding: 12px; background: #f5f5f5; border-radius: 8px; border: 1px solid #e0e0e0; }
+        .piece-preview-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 1.25rem; }
+        .piece-preview-row:last-child { margin-bottom: 0; }
+        .piece-preview-label { font-size: 0.85rem; color: #666; min-width: 48px; font-weight: 600; }
+        .piece-preview-white span, #piece-preview-white { color: #333; }
+        .piece-preview-black span, #piece-preview-black { color: #111; }
+        #piece-preview-white, #piece-preview-black { letter-spacing: 0.15em; }
+    </style>
+</head>
+<body>
+    <div class="settings-page">
+        <header class="settings-page-header">
+            <h1>⚙️ Settings</h1>
+            <div class="settings-header-actions">
+                <button type="button" id="save-changes-btn" class="btn btn-save-changes">Save changes</button>
+                <a href="index.html" class="settings-back-link">← Back to your chess game</a>
+            </div>
+        </header>
+
+        <section class="settings-section-block">
+            <h2>👤 Player names</h2>
+            <p class="board-style-hint">Display names used when creating or joining online games.</p>
+            <div class="player-names" style="display: grid; gap: 12px;">
+                <div>
+                    <label for="white-player-name">White player name</label>
+                    <input type="text" id="white-player-name" placeholder="Player 1" value="Player 1" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 2px solid #ddd;">
+                </div>
+                <div>
+                    <label for="black-player-name">Black player name</label>
+                    <input type="text" id="black-player-name" placeholder="Player 2" value="Player 2" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 2px solid #ddd;">
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section-block">
+            <h2>⏱️ Timer</h2>
+            <div class="timer-controls" style="display: grid; gap: 12px;">
+                <div>
+                    <label for="white-timer-minutes">White (minutes)</label>
+                    <input type="number" id="white-timer-minutes" min="0" max="120" value="10" class="timer-input" style="width: 80px; padding: 8px;">
+                </div>
+                <div>
+                    <label for="black-timer-minutes">Black (minutes)</label>
+                    <input type="number" id="black-timer-minutes" min="0" max="120" value="10" class="timer-input" style="width: 80px; padding: 8px;">
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section-block">
+            <h2>🤖 Bot</h2>
+            <div style="display: grid; gap: 12px;">
+                <div>
+                    <label for="bot-name">Bot name</label>
+                    <input type="text" id="bot-name" placeholder="ChessBot" value="ChessBot" maxlength="20" style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 2px solid #ddd;">
+                </div>
+                <div>
+                    <label for="bot-difficulty">Difficulty</label>
+                    <select id="bot-difficulty" class="difficulty-select" style="padding: 8px 12px; border-radius: 6px; border: 2px solid #ddd;">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section class="settings-section-block customization">
+            <h2>🎨 Customize colors & themes</h2>
+            <p class="board-style-hint">Changes apply when you return to the game.</p>
+            <div class="board-style-section">
+                <h4>Board style</h4>
+                <div class="board-style-grid" id="board-style-grid">
+                    <button type="button" class="board-style-tile" data-light="#f0d9b5" data-dark="#b58863" title="Classic"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                    <button type="button" class="board-style-tile" data-light="#a8d5e2" data-dark="#4a90a4" title="Ocean"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                    <button type="button" class="board-style-tile" data-light="#c8d5b9" data-dark="#6b8e5a" title="Forest"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                    <button type="button" class="board-style-tile" data-light="#ffd4a3" data-dark="#ff8c5a" title="Sunset"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                    <button type="button" class="board-style-tile" data-light="#e0e0e0" data-dark="#606060" title="Monochrome"><span class="board-style-preview"><span class="preview-cell light"></span><span class="preview-cell dark"></span><span class="preview-cell dark"></span><span class="preview-cell light"></span></span></button>
+                </div>
+            </div>
+            <div class="color-controls">
+                <div class="color-control-group">
+                    <label for="light-square-color">Light square</label>
+                    <div class="color-input-group">
+                        <input type="color" id="light-square-color" value="#f0d9b5">
+                        <input type="text" id="light-square-text" value="#f0d9b5" class="color-text-input">
+                    </div>
+                </div>
+                <div class="color-control-group">
+                    <label for="dark-square-color">Dark square</label>
+                    <div class="color-input-group">
+                        <input type="color" id="dark-square-color" value="#b58863">
+                        <input type="text" id="dark-square-text" value="#b58863" class="color-text-input">
+                    </div>
+                </div>
+                <div class="piece-colors-section">
+                    <h4>Piece colors</h4>
+                    <div class="color-control-group">
+                        <label for="white-piece-color">White pieces</label>
+                        <div class="color-input-group">
+                            <input type="color" id="white-piece-color" value="#ffffff">
+                            <input type="text" id="white-piece-text" value="#ffffff" class="color-text-input">
+                        </div>
+                    </div>
+                    <div class="color-control-group">
+                        <label for="black-piece-color">Black pieces</label>
+                        <div class="color-input-group">
+                            <input type="color" id="black-piece-color" value="#000000">
+                            <input type="text" id="black-piece-text" value="#000000" class="color-text-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="color-control-group">
+                    <label for="board-container-color">Board container</label>
+                    <div class="color-input-group">
+                        <input type="color" id="board-container-color" value="#ffffff">
+                        <input type="text" id="board-container-text" value="#ffffff" class="color-text-input">
+                    </div>
+                </div>
+                <div class="color-control-group">
+                    <label for="background-theme-selector">Background theme</label>
+                    <select id="background-theme-selector" class="piece-set-selector">
+                        <optgroup label="Nature">
+                            <option value="rainy">Rainy Storm</option>
+                            <option value="ocean">Ocean Waves</option>
+                            <option value="forest">Forest Green</option>
+                            <option value="sunset">Sunset Sky</option>
+                            <option value="aurora">Aurora Borealis</option>
+                        </optgroup>
+                        <optgroup label="Space">
+                            <option value="space">Deep Space</option>
+                            <option value="nebula">Cosmic Nebula</option>
+                            <option value="mars">Mars Surface</option>
+                        </optgroup>
+                        <optgroup label="Abstract">
+                            <option value="gradient1">Purple Dream</option>
+                            <option value="gradient2">Blue Ocean</option>
+                            <option value="neon">Neon Nights</option>
+                        </optgroup>
+                        <optgroup label="Seasonal">
+                            <option value="spring">Spring Bloom</option>
+                            <option value="summer">Summer Beach</option>
+                            <option value="autumn">Autumn Leaves</option>
+                            <option value="winter">Winter Frost</option>
+                            <option value="christmas">Christmas Eve</option>
+                        </optgroup>
+                        <optgroup label="Special">
+                            <option value="fire">Fire & Flame</option>
+                            <option value="ice">Ice Crystal</option>
+                            <option value="rainbow">Rainbow Spectrum</option>
+                        </optgroup>
+                        <optgroup label="Custom">
+                            <option value="custom">Custom gradient</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div id="custom-background-section" class="custom-background-section" style="display: none;">
+                    <div class="color-control-group">
+                        <label for="custom-bg-color1">Gradient color 1</label>
+                        <div class="color-input-group">
+                            <input type="color" id="custom-bg-color1" value="#2c3e50">
+                            <input type="text" id="custom-bg-color1-text" value="#2c3e50" class="color-text-input">
+                        </div>
+                    </div>
+                    <div class="color-control-group">
+                        <label for="custom-bg-color2">Gradient color 2</label>
+                        <div class="color-input-group">
+                            <input type="color" id="custom-bg-color2" value="#3498db">
+                            <input type="text" id="custom-bg-color2-text" value="#3498db" class="color-text-input">
+                        </div>
+                    </div>
+                    <div class="color-control-group">
+                        <label for="custom-bg-angle">Gradient angle (0–360°)</label>
+                        <input type="number" id="custom-bg-angle" min="0" max="360" value="135" class="color-text-input" style="width: 5em;">
+                    </div>
+                </div>
+                <div class="color-control-group">
+                    <label for="piece-set-selector">Piece style</label>
+                    <select id="piece-set-selector" class="piece-set-selector">
+                        <optgroup label="Chess pieces">
+                            <option value="classicChess" selected>Classic Chess Pieces</option>
+                            <option value="classicBold">Classic Bold</option>
+                            <option value="classicOutline">Classic Outline</option>
+                            <option value="classicShadow">Classic Shadow</option>
+                            <option value="classicItalic">Classic Italic</option>
+                            <option value="staunton">Staunton (Piece Images)</option>
+                        </optgroup>
+                        <optgroup label="Classic">
+                            <option value="unicode">Unicode Symbols</option>
+                            <option value="letters">Letter Notation</option>
+                            <option value="bold">Bold Unicode</option>
+                            <option value="italic">Italic Letters</option>
+                            <option value="outline">Outline Shapes</option>
+                            <option value="minimal">Minimal</option>
+                        </optgroup>
+                        <optgroup label="Holidays">
+                            <option value="christmas">Christmas</option>
+                            <option value="halloween">Halloween</option>
+                            <option value="valentines">Valentine's Day</option>
+                            <option value="easter">Easter</option>
+                        </optgroup>
+                    </select>
+                    <div id="piece-preview" class="piece-preview" aria-label="Piece style preview">
+                        <div class="piece-preview-row piece-preview-white"><span class="piece-preview-label">White</span><span id="piece-preview-white"></span></div>
+                        <div class="piece-preview-row piece-preview-black"><span class="piece-preview-label">Black</span><span id="piece-preview-black"></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="preset-themes">
+                <h4>Preset themes</h4>
+                <div class="theme-buttons">
+                    <button type="button" class="theme-btn" data-theme="classic">Classic</button>
+                    <button type="button" class="theme-btn" data-theme="ocean">Ocean</button>
+                    <button type="button" class="theme-btn" data-theme="forest">Forest</button>
+                    <button type="button" class="theme-btn" data-theme="sunset">Sunset</button>
+                    <button type="button" class="theme-btn" data-theme="monochrome">Monochrome</button>
+                </div>
+            </div>
+            <button type="button" id="reset-colors-btn" class="btn btn-secondary">Reset to default</button>
+        </section>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="chess.js"></script>
+    <script src="settings-page.js"></script>
+</body>
+</html>

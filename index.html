@@ -85,36 +85,34 @@
                 </div>
                 <div class="user-info" id="user-info">
                     <span id="username-display"></span>
-                    <button id="settings-btn" class="settings-btn" title="Settings">⚙️</button>
+                    <button id="friends-btn" class="settings-btn" title="Friends">👥</button>
+                    <a href="settings.html" id="settings-btn" class="settings-btn" title="Settings">⚙️</a>
                     <button id="logout-btn" class="logout-btn">Logout</button>
                 </div>
             </div>
         </header>
 
-        <!-- Settings Modal -->
-        <div id="settings-modal" class="settings-modal">
-            <div class="settings-modal-content">
-                <div class="settings-modal-header">
-                    <h2>⚙️ Settings</h2>
-                    <button class="settings-close-btn" id="settings-close-btn">&times;</button>
+        <!-- Friends Modal -->
+        <div id="friends-modal" class="friends-modal settings-modal">
+            <div class="friends-modal-content settings-modal-content">
+                <div class="friends-modal-header settings-modal-header">
+                    <h2>👥 Friends</h2>
+                    <button type="button" class="settings-close-btn" id="friends-close-btn" aria-label="Close">&times;</button>
                 </div>
-                <div class="settings-modal-body">
-                    <div class="settings-section">
-                        <h3>Quick Settings</h3>
-                        <div class="settings-options">
-                            <button class="settings-option-btn" id="settings-profile-btn">
-                                <span>👤</span> Profile Settings
-                            </button>
-                            <button class="settings-option-btn" id="settings-customization-btn">
-                                <span>🎨</span> Customize Colors & Themes
-                            </button>
-                            <button class="settings-option-btn" id="settings-timer-btn">
-                                <span>⏱️</span> Timer Settings
-                            </button>
-                            <button class="settings-option-btn" id="settings-bot-btn">
-                                <span>🤖</span> Bot Settings
-                            </button>
+                <div class="friends-modal-body">
+                    <p id="friends-guest-msg" class="friends-empty" style="display: none;">Log in to add friends and invite them to games.</p>
+                    <div class="friends-add-section">
+                        <label for="friend-username-input" class="friends-label">Add friend by username</label>
+                        <div class="friends-add-row">
+                            <input type="text" id="friend-username-input" class="friends-input" placeholder="Enter username" maxlength="32" autocomplete="off">
+                            <button type="button" id="add-friend-btn" class="btn btn-primary">Add Friend</button>
                         </div>
+                        <p id="friends-add-message" class="friends-message" aria-live="polite"></p>
+                    </div>
+                    <div class="friends-list-section">
+                        <h3 class="friends-list-title">My Friends</h3>
+                        <ul id="friends-list" class="friends-list"></ul>
+                        <p id="friends-empty" class="friends-empty">No friends yet. Add someone by username above.</p>
                     </div>
                 </div>
             </div>
@@ -122,6 +120,29 @@
 
         <main>
             <div class="chess-container">
+                <!-- Multiplayer pre-game lobby: "vs" screen (both players see before game starts) -->
+                <div id="multiplayer-lobby" class="multiplayer-lobby" style="display: none;" aria-live="polite">
+                    <div class="lobby-card">
+                        <h2 class="lobby-title">Match Ready</h2>
+                        <div class="lobby-vs">
+                            <div class="lobby-player lobby-white">
+                                <span class="lobby-label">White</span>
+                                <span id="lobby-white-name" class="lobby-name">—</span>
+                            </div>
+                            <span class="lobby-vs-divider">VS</span>
+                            <div class="lobby-player lobby-black">
+                                <span class="lobby-label">Black</span>
+                                <span id="lobby-black-name" class="lobby-name">—</span>
+                            </div>
+                        </div>
+                        <p id="lobby-message" class="lobby-message">Waiting for opponent…</p>
+                        <div class="lobby-actions">
+                            <button type="button" id="lobby-start-btn" class="btn btn-primary lobby-start-btn" style="display: none;">Start Game</button>
+                            <span id="lobby-waiting-text" class="lobby-waiting-text">Waiting for host to start…</span>
+                        </div>
+                        <button type="button" id="lobby-leave-btn" class="btn btn-secondary lobby-leave-btn">Leave</button>
+                    </div>
+                </div>
                 <div class="board-container">
                     <div class="board-with-timers">
                         <div class="side-timers">
@@ -494,11 +515,42 @@
                                         <option value="rainbow">Rainbow Spectrum</option>
                                         <option value="holographic">Holographic</option>
                                     </optgroup>
+                                    <optgroup label="Custom">
+                                        <option value="custom">Custom gradient</option>
+                                    </optgroup>
                                 </select>
+                            </div>
+                            <div id="custom-background-section" class="custom-background-section" style="display: none;">
+                                <div class="color-control-group">
+                                    <label for="custom-bg-color1">Gradient color 1</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="custom-bg-color1" value="#2c3e50">
+                                        <input type="text" id="custom-bg-color1-text" value="#2c3e50" class="color-text-input">
+                                    </div>
+                                </div>
+                                <div class="color-control-group">
+                                    <label for="custom-bg-color2">Gradient color 2</label>
+                                    <div class="color-input-group">
+                                        <input type="color" id="custom-bg-color2" value="#3498db">
+                                        <input type="text" id="custom-bg-color2-text" value="#3498db" class="color-text-input">
+                                    </div>
+                                </div>
+                                <div class="color-control-group">
+                                    <label for="custom-bg-angle">Gradient angle (0–360°)</label>
+                                    <input type="number" id="custom-bg-angle" min="0" max="360" value="135" class="color-text-input" style="width: 5em;">
+                                </div>
                             </div>
                             <div class="color-control-group">
                                 <label for="piece-set-selector">Piece Style</label>
                                 <select id="piece-set-selector" class="piece-set-selector">
+                                    <optgroup label="Chess pieces">
+                                        <option value="classicChess" selected>Classic Chess Pieces</option>
+                                        <option value="classicBold">Classic Bold</option>
+                                        <option value="classicOutline">Classic Outline</option>
+                                        <option value="classicShadow">Classic Shadow</option>
+                                        <option value="classicItalic">Classic Italic</option>
+                                        <option value="staunton">Staunton (Piece Images)</option>
+                                    </optgroup>
                                     <optgroup label="Classic">
                                         <option value="unicode">Unicode Symbols</option>
                                         <option value="letters">Letter Notation</option>
@@ -553,6 +605,10 @@
                                         <option value="neon">Neon</option>
                                     </optgroup>
                                 </select>
+                                <div id="piece-preview" class="piece-preview" aria-label="Piece style preview">
+                                    <div class="piece-preview-row piece-preview-white"><span class="piece-preview-label">White</span><span id="piece-preview-white"></span></div>
+                                    <div class="piece-preview-row piece-preview-black"><span class="piece-preview-label">Black</span><span id="piece-preview-black"></span></div>
+                                </div>
                             </div>
                         </div>
                         <div class="preset-themes">
@@ -725,6 +781,7 @@
     <!-- Main Application Scripts -->
     <script src="auth.js"></script>
     <script src="multiplayer.js"></script>
+    <script src="friends.js"></script>
     <script src="chess.js"></script>
     <script src="rain.js"></script>
 </body>
