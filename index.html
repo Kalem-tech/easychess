@@ -731,7 +731,7 @@
         });
     </script>
     
-    <!-- Banner: set window.VIEWER_COUNT_URL (returns { count: number } or { count, players }) and/or window.PLAYERS_COUNT_URL (returns { count: number }) -->
+    <!-- Banner: viewer count = +1 when someone joins; set VIEWER_COUNT_URL to override. PLAYERS_COUNT_URL optional. -->
     <script>
         (function() {
             var viewerEl = document.getElementById('viewer-count');
@@ -744,34 +744,61 @@
             }
             function fetchViewers() {
                 var url = window.VIEWER_COUNT_URL;
-                if (!url) {
-                    setViewerCount(0);
+                if (url) {
+                    fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+                        setViewerCount(data.count != null ? data.count : data);
+                        if (data.players != null) setPlayersCount(data.players);
+                    }).catch(function() { setViewerCount(0); });
                     return;
                 }
-                fetch(url).then(function(r) { return r.json(); }).then(function(data) {
-                    setViewerCount(data.count != null ? data.count : data);
-                    if (data.players != null) setPlayersCount(data.players);
-                }).catch(function() {
-                    setViewerCount(0);
-                });
+                var hitUrl = 'https://api.countapi.xyz/hit/easychess/viewers';
+                var getUrl = 'https://api.countapi.xyz/get/easychess/viewers';
+                fetch(hitUrl).then(function(r) { return r.json(); }).then(function(data) {
+                    var n = data.value != null ? data.value : (data.count != null ? data.count : 0);
+                    setViewerCount(n);
+                }).catch(function() { setViewerCount(0); });
+            }
+            function refreshViewerCount() {
+                if (window.VIEWER_COUNT_URL) return;
+                fetch('https://api.countapi.xyz/get/easychess/viewers').then(function(r) { return r.json(); }).then(function(data) {
+                    var n = data.value != null ? data.value : (data.count != null ? data.count : 0);
+                    setViewerCount(n);
+                }).catch(function() {});
             }
             function fetchPlayers() {
                 var url = window.PLAYERS_COUNT_URL;
-                if (!url) return;
-                fetch(url).then(function(r) { return r.json(); }).then(function(data) {
-                    var n = data.count != null ? data.count : data;
-                    setPlayersCount(typeof n === 'number' && !isNaN(n) ? n : 0);
-                }).catch(function() {
-                    setPlayersCount(0);
-                });
+                if (url) {
+                    fetch(url).then(function(r) { return r.json(); }).then(function(data) {
+                        var n = data.count != null ? data.count : data;
+                        setPlayersCount(typeof n === 'number' && !isNaN(n) ? n : 0);
+                    }).catch(function() { setPlayersCount(0); });
+                    return;
+                }
+                fetch('https://api.countapi.xyz/get/easychess/playing').then(function(r) { return r.json(); }).then(function(data) {
+                    var n = data.value != null ? data.value : (data.count != null ? data.count : 0);
+                    setPlayersCount(n);
+                }).catch(function() { setPlayersCount(0); });
             }
+            window.incrementPlayingNow = function() {
+                if (window.PLAYERS_COUNT_URL) return;
+                fetch('https://api.countapi.xyz/hit/easychess/playing').then(function(r) { return r.json(); }).then(function(data) {
+                    var n = data.value != null ? data.value : (data.count != null ? data.count : 0);
+                    setPlayersCount(n);
+                }).catch(function() {});
+            };
             setViewerCount(0);
             setPlayersCount(0);
             if (window.VIEWER_COUNT_URL) {
                 fetchViewers();
                 setInterval(fetchViewers, 10000);
+            } else {
+                fetchViewers();
+                setInterval(refreshViewerCount, 10000);
             }
             if (window.PLAYERS_COUNT_URL) {
+                fetchPlayers();
+                setInterval(fetchPlayers, 10000);
+            } else {
                 fetchPlayers();
                 setInterval(fetchPlayers, 10000);
             }

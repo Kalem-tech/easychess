@@ -1641,6 +1641,7 @@ class ChessGame {
             this.applyTimerSettings();
             
             this.gameStarted = true;
+            if (typeof window.incrementPlayingNow === 'function') window.incrementPlayingNow();
             const startBtn = document.getElementById('start-game-btn');
             if (startBtn) {
                 startBtn.style.display = 'none';

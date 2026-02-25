@@ -417,6 +417,7 @@ function startGame() {
     
     hideLobby();
     MP.gameStarted = true;
+    if (typeof window.incrementPlayingNow === 'function') window.incrementPlayingNow();
     window.chessGame.gameStarted = true;
     window.chessGame.currentPlayer = 'white';
     
