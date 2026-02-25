@@ -751,17 +751,16 @@
                     }).catch(function() { setViewerCount(0); });
                     return;
                 }
-                var hitUrl = 'https://api.countapi.xyz/hit/easychess/viewers';
-                var getUrl = 'https://api.countapi.xyz/get/easychess/viewers';
+                var hitUrl = (window.location.origin || '') + '/api/viewers?hit=1';
                 fetch(hitUrl).then(function(r) { return r.json(); }).then(function(data) {
-                    var n = data.value != null ? data.value : (data.count != null ? data.count : 0);
+                    var n = data.count != null ? data.count : (data.value != null ? data.value : 0);
                     setViewerCount(n);
                 }).catch(function() { setViewerCount(0); });
             }
             function refreshViewerCount() {
                 if (window.VIEWER_COUNT_URL) return;
-                fetch('https://api.countapi.xyz/get/easychess/viewers').then(function(r) { return r.json(); }).then(function(data) {
-                    var n = data.value != null ? data.value : (data.count != null ? data.count : 0);
+                fetch((window.location.origin || '') + '/api/viewers').then(function(r) { return r.json(); }).then(function(data) {
+                    var n = data.count != null ? data.count : (data.value != null ? data.value : 0);
                     setViewerCount(n);
                 }).catch(function() {});
             }
@@ -774,15 +773,15 @@
                     }).catch(function() { setPlayersCount(0); });
                     return;
                 }
-                fetch('https://api.countapi.xyz/get/easychess/playing').then(function(r) { return r.json(); }).then(function(data) {
-                    var n = data.value != null ? data.value : (data.count != null ? data.count : 0);
+                fetch((window.location.origin || '') + '/api/playing').then(function(r) { return r.json(); }).then(function(data) {
+                    var n = data.count != null ? data.count : (data.value != null ? data.value : 0);
                     setPlayersCount(n);
                 }).catch(function() { setPlayersCount(0); });
             }
             window.incrementPlayingNow = function() {
                 if (window.PLAYERS_COUNT_URL) return;
-                fetch('https://api.countapi.xyz/hit/easychess/playing').then(function(r) { return r.json(); }).then(function(data) {
-                    var n = data.value != null ? data.value : (data.count != null ? data.count : 0);
+                fetch((window.location.origin || '') + '/api/playing?hit=1').then(function(r) { return r.json(); }).then(function(data) {
+                    var n = data.count != null ? data.count : (data.value != null ? data.value : 0);
                     setPlayersCount(n);
                 }).catch(function() {});
             };

@@ -33,7 +33,9 @@ module.exports = async function handler(req, res) {
   const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
   const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
   if (!redisUrl || !redisToken) {
-    return res.status(500).json({ error: 'Server not configured for email sign-in. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN.' });
+    return res.status(503).json({
+      error: 'Email sign-in is not set up yet. The site owner needs to add Upstash Redis in Vercel (see EMAIL_SIGNIN_SETUP.md). You can use the Password tab to sign in if you have an account.'
+    });
   }
   try {
     const redis = new Redis({ url: redisUrl, token: redisToken });
@@ -45,7 +47,9 @@ module.exports = async function handler(req, res) {
 
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Email not configured. Set RESEND_API_KEY.' });
+    return res.status(503).json({
+      error: 'Email sign-in is not set up yet. The site owner needs to add Resend (RESEND_API_KEY) in Vercel. You can use the Password tab to sign in if you have an account.'
+    });
   }
 
   try {

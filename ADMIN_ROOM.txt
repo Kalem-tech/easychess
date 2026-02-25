@@ -1,0 +1,33 @@
+Admin room (Admin Portal) – Chess website
+==========================================
+
+FILE PATH TO ADMIN ROOM (page):
+  admin.html
+
+FULL URL (when deployed, replace with your domain):
+  https://your-site.vercel.app/admin.html
+
+HOW TO OPEN:
+  • From Settings: log in as an admin user → Settings → click "Admin"
+  • Direct: go to /admin.html (e.g. yoursite.vercel.app/admin.html)
+
+WHO CAN ACCESS:
+  • Only users whose username is in the admin list (default: "admin").
+  • Add more admins by setting, before auth.js loads:
+    window.CHESS_ADMIN_USERNAMES = ['admin', 'YourUsername'];
+
+
+CHESS WORLD SONG (admin portal music)
+-------------------------------------
+
+SONG FILE TO USE IN THE ADMIN ROOM:
+  chess-world-song.mp3
+
+Put your "Chess World" audio file in the project root with that name:
+  chess-website/chess-world-song.mp3
+
+The admin portal has a music player that plays this file when you click Play.
+If the file is missing, the player will show an error until you add it.
+
+Supported formats: MP3 (recommended), or use .ogg / .wav and update the
+<audio> src in admin.html to match your filename.

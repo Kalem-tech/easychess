@@ -177,6 +177,16 @@
         .forgot-password-btn:hover {
             color: #764ba2;
         }
+        .auth-fallback-actions { text-align: center; }
+        .auth-fallback-actions .auth-btn-secondary {
+            margin: 4px;
+            background: #e2e8f0;
+            color: #334155;
+        }
+        .auth-fallback-actions .auth-btn-secondary:hover {
+            background: #cbd5e0;
+            color: #1e293b;
+        }
     </style>
 </head>
 <body>
@@ -203,6 +213,11 @@
                 <input type="text" id="email-code" placeholder="12345" maxlength="5" pattern="[0-9]{5}" inputmode="numeric" autocomplete="one-time-code">
             </div>
             <button type="submit" class="auth-btn" id="email-submit-btn">Request code from Gmail</button>
+            <div id="auth-fallback-actions" class="auth-fallback-actions" style="display: none; margin-top: 14px;">
+                <p style="margin: 0 0 10px; font-size: 0.9rem; color: #555;">Use one of these instead:</p>
+                <button type="button" class="auth-btn auth-btn-secondary" id="auth-goto-password">Sign in with Password</button>
+                <button type="button" class="auth-btn auth-btn-secondary" id="auth-goto-signup">Create account (Sign Up)</button>
+            </div>
         </form>
 
         <form id="login-form" class="auth-form">

@@ -95,6 +95,8 @@ class AuthSystem {
                 this.handleEmailCodeSubmit();
             });
         }
+        document.getElementById('auth-goto-password')?.addEventListener('click', () => this.switchTab('login'));
+        document.getElementById('auth-goto-signup')?.addEventListener('click', () => this.switchTab('signup'));
 
         // Login form
         document.getElementById('login-form').addEventListener('submit', (e) => {
@@ -148,7 +150,11 @@ class AuthSystem {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email })
             })
-                .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+                .then(function(r) { return r.text().then(function(text) {
+                    var data = null;
+                    try { data = text ? JSON.parse(text) : {}; } catch (e) {}
+                    return { ok: r.ok, status: r.status, data: data || {} };
+                }); })
                 .then(function(result) {
                     submitBtn.disabled = false;
                     if (result.ok && result.data && !result.data.error) {
@@ -161,13 +167,23 @@ class AuthSystem {
                         auth.showSuccess('Check your email and enter the 5-digit code.');
                     } else {
                         submitBtn.textContent = 'Request code from Gmail';
-                        auth.showError(result.data && result.data.error || 'Failed to send code');
+                        var errMsg = result.data && result.data.error ? result.data.error : 'Failed to send code.';
+                        if (errMsg.indexOf('not set up') !== -1) {
+                            errMsg += ' Use the Password tab to sign in if you have an account.';
+                        }
+                        auth.showError(errMsg);
                     }
                 })
                 .catch(function(err) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Request code from Gmail';
-                    auth.showError('Network error. Try again or use Password / Sign up.');
+                    var msg = 'Could not reach the server. ';
+                    if (!base || base.indexOf('localhost') !== -1 || base.indexOf('127.0.0.1') !== -1) {
+                        msg += 'Email sign-in only works on the live site (Vercel). Use the Password tab or play as Guest.';
+                    } else {
+                        msg += 'Email sign-in may not be set up yet (the site needs Resend + Upstash in Vercel). Use the Password tab or play as Guest.';
+                    }
+                    auth.showError(msg);
                 });
             return;
         }
@@ -259,9 +275,13 @@ class AuthSystem {
         const errorDiv = document.getElementById('error-message');
         errorDiv.textContent = message;
         errorDiv.classList.add('show');
+        const fallback = document.getElementById('auth-fallback-actions');
+        if (fallback && (message.indexOf('Password tab') !== -1 || message.indexOf('not set up') !== -1 || message.indexOf('Could not reach') !== -1)) {
+            fallback.style.display = 'block';
+        }
         setTimeout(() => {
             errorDiv.classList.remove('show');
-        }, 5000);
+        }, 8000);
     }
 
     showSuccess(message) {
@@ -276,6 +296,8 @@ class AuthSystem {
     hideMessages() {
         document.getElementById('error-message').classList.remove('show');
         document.getElementById('success-message').classList.remove('show');
+        const fallback = document.getElementById('auth-fallback-actions');
+        if (fallback) fallback.style.display = 'none';
     }
 
     handleSignup() {
@@ -456,6 +478,14 @@ class AuthSystem {
         this.currentUser.preferences = preferences;
         this.setCurrentUser(this.currentUser);
         this.saveUsers();
+    }
+
+    isAdmin() {
+        const list = (typeof window !== 'undefined' && window.CHESS_ADMIN_USERNAMES && Array.isArray(window.CHESS_ADMIN_USERNAMES))
+            ? window.CHESS_ADMIN_USERNAMES
+            : ['admin'];
+        const username = this.currentUser && this.currentUser.username ? String(this.currentUser.username).trim().toLowerCase() : '';
+        return list.some(function (a) { return String(a).trim().toLowerCase() === username; });
     }
 }
 

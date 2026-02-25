@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Admin Portal - Chess Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-page { padding: 24px; max-width: 800px; margin: 0 auto; }
+        .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+        .admin-header h1 { margin: 0; font-size: 1.5rem; color: #667eea; }
+        .admin-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: #667eea; color: white; border-radius: 8px; text-decoration: none; font-weight: 600; }
+        .admin-link:hover { background: #5568d3; color: white; }
+        .admin-denied { text-align: center; padding: 48px 24px; background: rgba(255,255,255,0.95); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .admin-denied h2 { color: #c53030; margin-bottom: 12px; }
+        .admin-card { background: rgba(255,255,255,0.95); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 20px; }
+        .admin-card h2 { margin: 0 0 16px; font-size: 1.15rem; color: #333; }
+        .admin-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .admin-stat { background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.08)); border-radius: 10px; padding: 16px; text-align: center; border: 1px solid rgba(102,126,234,0.2); }
+        .admin-stat-value { font-size: 1.75rem; font-weight: 700; color: #667eea; }
+        .admin-stat-label { font-size: 0.85rem; color: #555; margin-top: 4px; }
+        .admin-users-list { list-style: none; margin: 0; padding: 0; max-height: 240px; overflow-y: auto; }
+        .admin-users-list li { padding: 10px 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .admin-users-list li:last-child { border-bottom: none; }
+        .admin-refresh { margin-top: 12px; padding: 6px 14px; font-size: 0.9rem; background: #e2e8f0; border: none; border-radius: 6px; cursor: pointer; }
+        .admin-refresh:hover { background: #cbd5e0; }
+    </style>
+</head>
+<body>
+    <div class="admin-page">
+        <header class="admin-header" id="admin-header" style="display: none;">
+            <h1>🛡️ Admin Portal</h1>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="index.html" class="admin-link">← Game</a>
+                <a href="settings.html" class="admin-link">Settings</a>
+            </div>
+        </header>
+
+        <div id="admin-denied" class="admin-denied" style="display: none;">
+            <h2>Access denied</h2>
+            <p>You must be an admin to view this page.</p>
+            <a href="index.html" class="admin-link" style="margin-top: 16px; display: inline-block;">Go to game</a>
+        </div>
+
+        <div id="admin-dashboard" style="display: none;">
+            <div class="admin-stats">
+                <div class="admin-stat">
+                    <div class="admin-stat-value" id="admin-viewers">--</div>
+                    <div class="admin-stat-label">Viewers now</div>
+                </div>
+                <div class="admin-stat">
+                    <div class="admin-stat-value" id="admin-playing">--</div>
+                    <div class="admin-stat-label">Playing now</div>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <h2>📊 Live stats</h2>
+                <p style="margin: 0 0 12px; color: #666; font-size: 0.9rem;">Counts update from the site. Refresh to see latest.</p>
+                <button type="button" id="admin-refresh-stats" class="admin-refresh">Refresh stats</button>
+            </div>
+
+            <div class="admin-card">
+                <h2>🎵 Chess World Song</h2>
+                <p style="margin: 0 0 12px; color: #666; font-size: 0.9rem;">Theme song for the admin room. Add <strong>chess-world-song.mp3</strong> to the project root to play.</p>
+                <audio id="admin-chess-song" controls preload="metadata" style="width: 100%; max-width: 400px; margin-top: 8px;">
+                    <source src="chess-world-song.mp3" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+
+            <div class="admin-card">
+                <h2>👥 Registered users (this device)</h2>
+                <p style="margin: 0 0 12px; color: #666; font-size: 0.9rem;">Users stored in this browser’s localStorage. Not a global list.</p>
+                <ul class="admin-users-list" id="admin-users-list"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        (function () {
+            var header = document.getElementById('admin-header');
+            var denied = document.getElementById('admin-denied');
+            var dashboard = document.getElementById('admin-dashboard');
+
+            if (typeof auth === 'undefined' || !auth.isAdmin()) {
+                denied.style.display = 'block';
+                return;
+            }
+
+            header.style.display = 'flex';
+            dashboard.style.display = 'block';
+
+            function setViewers(n) {
+                var el = document.getElementById('admin-viewers');
+                if (el) el.textContent = typeof n === 'number' && !isNaN(n) ? n : '0';
+            }
+            function setPlaying(n) {
+                var el = document.getElementById('admin-playing');
+                if (el) el.textContent = typeof n === 'number' && !isNaN(n) ? n : '0';
+            }
+            function fetchStats() {
+                var origin = window.location.origin || '';
+                fetch(origin + '/api/viewers').then(function (r) { return r.json(); }).then(function (d) { setViewers(d.count); }).catch(function () { setViewers(0); });
+                fetch(origin + '/api/playing').then(function (r) { return r.json(); }).then(function (d) { setPlaying(d.count); }).catch(function () { setPlaying(0); });
+            }
+            function renderUsers() {
+                var list = document.getElementById('admin-users-list');
+                if (!list) return;
+                var users = [];
+                try {
+                    var raw = localStorage.getItem('chess_users');
+                    if (raw) users = Object.keys(JSON.parse(raw)).filter(function (k) { return k !== 'Guest'; });
+                } catch (e) {}
+                list.innerHTML = users.length ? users.map(function (u) { return '<li><span>' + escapeHtml(u) + '</span></li>'; }).join('') : '<li style="color:#666;">No registered users on this device.</li>';
+            }
+            function escapeHtml(s) {
+                var div = document.createElement('div');
+                div.textContent = s;
+                return div.innerHTML;
+            }
+
+            fetchStats();
+            renderUsers();
+            setInterval(fetchStats, 15000);
+
+            document.getElementById('admin-refresh-stats').addEventListener('click', function () {
+                fetchStats();
+                renderUsers();
+            });
+        })();
+    </script>
+</body>
+</html>

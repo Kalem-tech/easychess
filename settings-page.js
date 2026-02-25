@@ -161,6 +161,9 @@
     function init() {
         loadPrefs();
 
+        var adminLink = document.getElementById('admin-portal-link');
+        if (adminLink && typeof auth !== 'undefined' && auth.isAdmin()) adminLink.style.display = 'inline-flex';
+
         var saveChangesBtn = document.getElementById('save-changes-btn');
         if (saveChangesBtn) {
             saveChangesBtn.addEventListener('click', function() {
